@@ -9,9 +9,14 @@
  Created: 9/6/15
  Last Edited: 9/30/15
  
- A library for general use (pointers to void*) of stacks 
+ A library for general use of stacks for arbitrary data structures (payloads)
 */
 
+/**********************************************************************
+
+                  	    		I N C L U D E S
+
+***********************************************************************/
 #include <stdlib.h>
 
 /**********************************************************************
@@ -19,14 +24,14 @@
                   	    		S T A C K S
 
 ***********************************************************************/
-typedef struct Frames {
+typedef struct Frame {
   void *data;
-  struct Frames *next;
+  struct Frame *next;
 } Frame;
 
-typedef struct Stacks {
+typedef struct Stack {
   void(*printer)(void *data);
-  Frame *head;
+  Frame *top;
   int size;
 } Stack; // Stack STRUCT
 
@@ -37,11 +42,11 @@ typedef struct Stacks {
 ***********************************************************************/
 Stack *make_stack(void(*printer)(void *data)); //make me a stack
 void push(Stack *S, void *item);               //add an item to the top
-void *pop(Stack *S);                          //return the Frame at the top of the stack and side effect the stack
-void *peek(Stack *S);                         //return the Frame at the top (without removing it)
-int stack_size(Stack *S);                            //return the number of Frames in the stack
-int is_empty(Stack *S);                         //is the stack empty?
-void stack_print(Stack *S); //print out the stack
+void *pop(Stack *S);                           //return the Frame at the top of the stack and side effect the stack
+void *peek(Stack *S);                          //return the Frame at the top (without removing it)
+int stack_size(Stack *S);                      //return the number of Frames in the stack
+int stack_empty(Stack *S);                     //is the stack empty?
+void stack_print(Stack *S);                    //print out the stack
 
 /**********************************************************************
 
@@ -51,7 +56,7 @@ void stack_print(Stack *S); //print out the stack
 Stack *make_stack(void(*printer)(void *data)) {
   Stack *S = malloc(sizeof(Stack));
   S->printer = printer;
-  S->head = NULL;
+  S->top = NULL;
   S->size = 0;
   return S;
 }
@@ -59,33 +64,33 @@ Stack *make_stack(void(*printer)(void *data)) {
 void push(Stack *S, void *data) {
   Frame *F = malloc(sizeof(Frame));
   F->data = data;
-  F->next = S->head;
-  S->head = F;
+  F->next = S->top;
+  S->top = F;
   S->size = S->size++;
 }
 
 void *pop(Stack *S) {
-  void *data = S->head->data;
-  S->head = S->head->next;
+  void *data = S->top->data;
+  S->top = S->top->next;
   S->size = S->size--;
   return data;
 }
 
 void *peek(Stack *S) {
-  return S->head->data;
+  return S->top->data;
 }
 
 int stack_size(Stack *S) {
   return S->size;
 }
 
-int is_empty(Stack *S) {
+int stack_empty(Stack *S) {
   return S->size ? 0 : 1;
 }
 
 void stack_print(Stack *S) {
   if(S->size) {
-    Frame *F = S->head;
+    Frame *F = S->top;
     while(F != NULL) {
       S->printer(F->data);
       F = F->next;
