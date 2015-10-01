@@ -41,6 +41,7 @@ typedef struct Stack {
 
 ***********************************************************************/
 Stack *make_stack(void(*printer)(void *data)); //make me a stack
+void delete_stack(Stack *S);                   //delete the stack
 void push(Stack *S, void *item);               //add an item to the top
 void *pop(Stack *S);                           //return the Frame at the top of the stack and side effect the stack
 void *peek(Stack *S);                          //return the Frame at the top (without removing it)
@@ -59,6 +60,16 @@ Stack *make_stack(void(*printer)(void *data)) {
   S->top = NULL;
   S->size = 0;
   return S;
+}
+
+void delete_stack(Stack *S) {
+  Frame *current = S->top;
+  while(current != NULL) {
+    Frame *temp = current->next;
+    free(current);
+    current = temp;
+  }
+  free(S);
 }
 
 void push(Stack *S, void *data) {
@@ -89,11 +100,9 @@ int stack_empty(Stack *S) {
 }
 
 void stack_print(Stack *S) {
-  if(S->size) {
-    Frame *F = S->top;
-    while(F != NULL) {
-      S->printer(F->data);
-      F = F->next;
-    }
+  Frame *F = S->top;
+  while(F != NULL) {
+    S->printer(F->data);
+    F = F->next;
   }
 }
