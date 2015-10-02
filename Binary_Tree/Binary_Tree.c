@@ -20,24 +20,24 @@
 
 ***********************************************************************/
 #include <stdlib.h>
-#include "../Stack/Stack.c"
+#include "../Queue/Queue.c"
 
 /**********************************************************************
 
             	    	B I N A R Y   T R E E S	
 
 ***********************************************************************/
-typedef struct Node {
+typedef struct tr_node {
   void *key;
-  struct Node *l;
-  struct Node *r;
-  struct Node *parent;
-} Node;
+  struct tr_node *l;
+  struct tr_node *r;
+  struct tr_node *parent;
+} tr_node;
 
 typedef struct Tree {
   int (*comparator)(void *key1, void *key2);
   void (*printer)(void *key);
-  Node *root;
+  tr_node *root;
   int size;
   int height;
 } Tree;
@@ -51,14 +51,17 @@ Tree *make_tr(int (*comparator)(void *key1, void* key2), void (*printer)(void *k
 void delete_tr(Tree *T, void *key);     //delete of each node of the tree
 void tr_insert(Tree *T, void *key);     //insert a key into a new node into the tree
 void tr_delete(Tree *T);                //delete the node of the tree which contains key
-Node *tr_lookup(Tree *T, void *key);    //return the node with given key from the tree
-Node *tr_succ(Node *N);                 //the next decendant of a node
-Node *tr_pred(Node *N);                 //the next ancestor of a node
+tr_node *tr_lookup(Tree *T, void *key);    //return the node with given key from the tree
+tr_node *tr_succ(tr_node *N);                 //the next decendant of a node
+tr_node *tr_pred(tr_node *N);                 //the next ancestor of a node
 int tr_contains(Tree *T, void *key);    //does the tree contain the key? 
 int tr_height(Tree *T);                 //find the height
 int tr_size(Tree *T);                   //returns the number of nodes in the tree
 int tr_empty(Tree *T);                  //return whether the tree is empty
 void tr_print(Tree *T, int walk);       //print out the tree
+void tr_walk_pre(Tree *T);
+void tr_walk_in(Tree *T);
+void tr_walk_post(Tree *T);
 
 /**********************************************************************
 
@@ -84,13 +87,13 @@ void tr_insert(Tree *T, void *key) {
 void tr_delete(Tree *T) {
 }
 
-Node *tr_lookup(Tree *T, void *key) {
+tr_node *tr_lookup(Tree *T, void *key) {
 }
 
-Node *tr_succ(Node *N) {
+tr_node *tr_succ(tr_node *N) {
 }
 
-Node *tr_pred(Node *N) {
+tr_node *tr_pred(tr_node *N) {
 }
 
 int tr_contains(Tree *T, void *key) {
@@ -108,13 +111,58 @@ int tr_empty(Tree *T) {
   return T->size ? 0 : 1;
 }
 
-// -1 (preorder) --> root, L, R
-// 0 (inorder)   --> L, root, R
-// 1 (postorder) --> L, R, root
 void tr_print(Tree *T, int walk) {
-  Stack *S = make_stack(T->printer);
-  Node *current = T->root;
-  while(current != NULL) {
-    //
+  switch(walk) {
+    case -1: // -1 (preorder) --> root, L, R
+      tr_walk_pre(T);
+      break;
+    case 0: // 0 (inorder)   --> L, root, R
+      tr_walk_in(T);
+      break;
+    case 1: // 1 (postorder) --> L, R, root
+      tr_walk_post(T);
+      break;
   }
+}
+
+void tr_walk_pre(Tree *T) {
+  Queue *Q = make_queue(T->printer);
+  if(T->size) {
+    queue_enqueue(Q, T->root);
+    while(!queue_empty) {
+      tr_node *tr_root = queue_dequeue(Q);
+      if(tr_root->l != NULL) queue_enqueue(Q, tr_root->l);
+      if(tr_root->r != NULL) queue_enqueue(Q, tr_root->r);
+      T->printer(tr_root);
+    }
+  }
+  delete_queue(Q);
+}
+
+void tr_walk_in(Tree *T) {
+  Queue *Q = make_queue(T->printer);
+  if(T->size) {
+    if(T->root->l != NULL) queue_enqueue(Q, T->root->l);
+    while(!queue_empty) {
+      tr_node *tr_root = queue_dequeue(Q);
+      if(tr_root->l != NULL) queue_enqueue(Q, tr_root->l);
+      if(tr_root->l != NULL) queue_enqueue(Q, tr_root->r);
+      T->printer(tr_root);
+    }
+  }
+  delete_queue(Q);
+}
+
+void tr_walk_post(Tree *T) {
+  Queue *Q = make_queue(T->printer);
+  if(T->size) {
+    queue_enqueue(Q, T->root);
+    while(!queue_empty) {
+      tr_node *tr_root = queue_dequeue(Q);
+      if(tr_root->l != NULL) queue_enqueue(Q, tr_root->l);
+      if(tr_root->l != NULL) queue_enqueue(Q, tr_root->r);
+      T->printer(tr_root);
+    }
+  }
+  delete_queue(Q);
 }

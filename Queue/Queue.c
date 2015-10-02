@@ -24,15 +24,15 @@
                  	    		Q U E U E S
 
 ***********************************************************************/
-typedef struct Node {
+typedef struct q_node {
   void *data;
-  struct Node *next;
-} Node;
+  struct q_node *next;
+} q_node;
 
 typedef struct Queue {
   void(*printer)(void *data);
-  Node *head;
-  Node *tail;
+  q_node *head;
+  q_node *tail;
   int size;
 } Queue;
 
@@ -66,9 +66,9 @@ Queue *make_queue(void (*printer)(void *data)) {
 }
 
 void delete_queue(Queue *Q) {
-  Node *current = Q->head;
+  q_node *current = Q->head;
   while(current != NULL) {
-    Node *temp = current->next;
+    q_node *temp = current->next;
     free(current);
     current = temp;
   }
@@ -76,7 +76,7 @@ void delete_queue(Queue *Q) {
 }
 
 void queue_enqueue(Queue *Q, void *data) {
-  Node *N = malloc(sizeof(Node));
+  q_node *N = malloc(sizeof(q_node));
   N->next = NULL;
   N->data = data;
   if(!Q->size) {
@@ -90,7 +90,7 @@ void queue_enqueue(Queue *Q, void *data) {
   Q->size = Q->size++;
 }
 void *queue_dequeue(Queue *Q) {
-  Node *N = Q->head;
+  q_node *N = Q->head;
   Q->head = N->next;
   Q->size = Q->size--;
   return N->data;
@@ -102,7 +102,7 @@ void *queue_peek(Queue *Q) {
 
 int queue_contains(Queue *Q, void *data) {
   int wait_pos = 0;
-  Node *current = Q->head;
+  q_node *current = Q->head;
   while(current != NULL) {
     wait_pos += 1;
     if(current == data) break;
@@ -120,7 +120,7 @@ int queue_empty(Queue *Q) {
 }
 
 void queue_print(Queue *Q) {
-  Node *current = Q->head;
+  q_node *current = Q->head;
   while(current != NULL) {
     Q->printer(current->data);
     current = current->next;
