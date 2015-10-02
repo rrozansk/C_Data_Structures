@@ -28,7 +28,7 @@
 
 ***********************************************************************/
 typedef struct Node {
-  void *key_value;
+  void *key;
   struct Node *l;
   struct Node *r;
   struct Node *parent;
@@ -51,11 +51,9 @@ Tree *make_tr(int (*comparator)(void *key1, void* key2), void (*printer)(void *k
 void delete_tr(Tree *T, void *key);     //delete of each node of the tree
 void tr_insert(Tree *T, void *key);     //insert a key into a new node into the tree
 void tr_delete(Tree *T);                //delete the node of the tree which contains key
-
 Node *tr_lookup(Tree *T, void *key);    //return the node with given key from the tree
-Node *succ(Node *N);                    //the next decendant of a node
-Node *pred(Node *N);                    //the next ancestor of a node
-
+Node *tr_succ(Node *N);                 //the next decendant of a node
+Node *tr_pred(Node *N);                 //the next ancestor of a node
 int tr_contains(Tree *T, void *key);    //does the tree contain the key? 
 int tr_height(Tree *T);                 //find the height
 int tr_size(Tree *T);                   //returns the number of nodes in the tree
@@ -67,7 +65,7 @@ void tr_print(Tree *T, int walk);       //print out the tree
        		F U N C T I O N   I M P L E M E N T A T I O N T 
 
 ***********************************************************************/
-Tree *make_tree(int (*comparator)(void *key1, void *key2), void (*printer)(void *key)) {
+Tree *make_tr(int (*comparator)(void *key1, void *key2), void (*printer)(void *key)) {
   Tree *T = malloc(sizeof(Tree));
   T->comparator = comparator;
   T->printer = printer;
@@ -86,23 +84,28 @@ void tr_insert(Tree *T, void *key) {
 void tr_delete(Tree *T) {
 }
 
+Node *tr_lookup(Tree *T, void *key) {
+}
+
+Node *tr_succ(Node *N) {
+}
+
+Node *tr_pred(Node *N) {
+}
+
 int tr_contains(Tree *T, void *key) {
+}
+
+int tr_height(Tree *T) {
+  return T->height;
+}
+
+int tr_size(Tree *T) {
+  return T->size;
 }
 
 int tr_empty(Tree *T) {
   return T->size ? 0 : 1;
-}
-
-int tr_height(Tree *T) {
-}
-
-Node *tr_lookup(Tree *T, void *key) {
-}
-
-Node *succ(Node *N) {
-}
-
-Node *pred(Node *N) {
 }
 
 // -1 (preorder) --> root, L, R

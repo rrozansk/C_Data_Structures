@@ -42,9 +42,9 @@ typedef struct Stack {
 ***********************************************************************/
 Stack *make_stack(void(*printer)(void *data)); //make me a stack
 void delete_stack(Stack *S);                   //delete the stack
-void push(Stack *S, void *item);               //add an item to the top
-void *pop(Stack *S);                           //return the Frame at the top of the stack and side effect the stack
-void *peek(Stack *S);                          //return the Frame at the top (without removing it)
+void stack_push(Stack *S, void *item);               //add an item to the top
+void *stack_pop(Stack *S);                           //return the Frame at the top of the stack and side effect the stack
+void *stack_peek(Stack *S);                    //return the Frame at the top (without removing it)
 int stack_contains(Stack *S, void *data);      //returns whether the stack contains the data
 int stack_size(Stack *S);                      //return the number of Frames in the stack
 int stack_empty(Stack *S);                     //is the stack empty?
@@ -73,7 +73,7 @@ void delete_stack(Stack *S) {
   free(S);
 }
 
-void push(Stack *S, void *data) {
+void stack_push(Stack *S, void *data) {
   Frame *F = malloc(sizeof(Frame));
   F->data = data;
   F->next = S->top;
@@ -81,14 +81,14 @@ void push(Stack *S, void *data) {
   S->size = S->size++;
 }
 
-void *pop(Stack *S) {
+void *stack_pop(Stack *S) {
   void *data = S->top->data;
   S->top = S->top->next;
   S->size = S->size--;
   return data;
 }
 
-void *peek(Stack *S) {
+void *stack_peek(Stack *S) {
   return S->top->data;
 }
 
