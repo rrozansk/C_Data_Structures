@@ -1,4 +1,4 @@
-#include "Stacks.c"
+#include "Stack.c"
 #include <stdio.h>
 
 void print(void *data) {
@@ -21,6 +21,7 @@ int main() {
   }
   stack_print(my_stack);
   printf("stack size: %d\n", stack_size(my_stack));
+  printf("contains 5? %d\n", stack_contains(my_stack, &foo));
   void *data = pop(my_stack);
   stack_print(my_stack);
   printf("stack size: %d\n", stack_size(my_stack));

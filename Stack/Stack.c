@@ -45,6 +45,7 @@ void delete_stack(Stack *S);                   //delete the stack
 void push(Stack *S, void *item);               //add an item to the top
 void *pop(Stack *S);                           //return the Frame at the top of the stack and side effect the stack
 void *peek(Stack *S);                          //return the Frame at the top (without removing it)
+int stack_contains(Stack *S, void *data);      //returns whether the stack contains the data
 int stack_size(Stack *S);                      //return the number of Frames in the stack
 int stack_empty(Stack *S);                     //is the stack empty?
 void stack_print(Stack *S);                    //print out the stack
@@ -89,6 +90,17 @@ void *pop(Stack *S) {
 
 void *peek(Stack *S) {
   return S->top->data;
+}
+
+int stack_contains(Stack *S, void *data) {
+  int wait_pos = 0;
+  Frame *current = S->top;
+  while(current != NULL) {
+    wait_pos += 1;
+    if(current->data == data) break;
+    current = current->next;
+  }
+  return wait_pos;
 }
 
 int stack_size(Stack *S) {
