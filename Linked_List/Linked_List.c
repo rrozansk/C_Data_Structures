@@ -180,7 +180,20 @@ void ls_reverse(List *L) {
   L->head = new_ls;
 }
 
+// ...ikd if this is a good idea...
+ls_node *merge_sort(List *L, int start, int end) {
+}
+
+ls_node *merge(ls_node *L1, ls_node *L2) {
+}
+
+//merge sort --> maybe use quick sort. it is inplace although merge sort seems
+//better bc we will be jumping around memory instead of just being in an array
 void ls_sort(List *L, int (*comparator)(void *data1, void *data2)) {
+  int subls_size = L->size/2;
+  ls_node *L1 = merge_sort(L, 0, subls_size);
+  ls_node *L2 = merge_sort(L, subls_size+1, L->size);
+  L->head = merge(L1, L2);
 }
 
 void *ls_ref(List *L, int i) {
