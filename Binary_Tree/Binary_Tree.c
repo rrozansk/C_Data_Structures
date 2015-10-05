@@ -48,12 +48,12 @@ typedef struct Tree {
 
 ***********************************************************************/
 Tree *make_tr(int (*comparator)(void *key1, void* key2), void (*printer)(void *key));
-void delete_tr(Tree *T, void *key);     //delete of each node of the tree
+void delete_tr(Tree *T);                //delete of each node of the tree
 void tr_insert(Tree *T, void *key);     //insert a key into a new node into the tree
-void tr_delete(Tree *T);                //delete the node of the tree which contains key
-tr_node *tr_lookup(Tree *T, void *key);    //return the node with given key from the tree
-tr_node *tr_succ(tr_node *N);                 //the next decendant of a node
-tr_node *tr_pred(tr_node *N);                 //the next ancestor of a node
+void tr_delete(Tree *T, void *key);     //delete the node of the tree which contains key
+tr_node *tr_lookup(Tree *T, void *key); //return the node with given key from the tree
+tr_node *tr_succ(tr_node *N);           //the next decendant of a node
+tr_node *tr_pred(tr_node *N);           //the next ancestor of a node
 int tr_contains(Tree *T, void *key);    //does the tree contain the key? 
 int tr_height(Tree *T);                 //find the height
 int tr_size(Tree *T);                   //returns the number of nodes in the tree
@@ -78,13 +78,13 @@ Tree *make_tr(int (*comparator)(void *key1, void *key2), void (*printer)(void *k
   return T;
 }
 
-void delete_tr(Tree *T, void *key) {
+void delete_tr(Tree *T) {
 }
 
 void tr_insert(Tree *T, void *key) {
 }
 
-void tr_delete(Tree *T) {
+void tr_delete(Tree *T, void *key) {
 }
 
 tr_node *tr_lookup(Tree *T, void *key) {
