@@ -7,7 +7,7 @@
 /* 
  Author: Ryan Rozanski
  Created: 9/6/15
- Last Edited: 9/24/15
+ Last Edited: 10/5/15
  
  Just a simple linked ls library where every node in the ls points to the
  data instead of storing it itself. This allows the user to store there own
@@ -34,7 +34,7 @@ typedef struct ls_node {
 typedef struct List {
   void(*printer)(void *data);
   ls_node *head;
-  ls_node *tail; //makes append O(1) w/ single extra pointer overhead 
+  ls_node *tail;
   int size;
 } List;
 
@@ -45,26 +45,26 @@ typedef struct List {
 ***********************************************************************/
 List *make_ls(void (*printer)(void *data));
 void delete_ls(List *L);
-void ls_insert_after(List *L, void *ls_item, void *new_item);
 void ls_insert_beggining(List *L, void *item);
+void ls_insert_after(List *L, void *ls_item, void *new_item);
 void ls_insert_end(List *L, void *item);
 void ls_remove_item(List *L, void *item);
-void ls_print(List *L); 
+int ls_contains(List *L, void *item);
 int ls_length(List *L);
+int ls_empty(List *L);
+void ls_print(List *L); 
 void ls_append(List *L1, List *L2);
-//void ls_reverse(List *L);
-//int ls_contains(List *L, void *item);
-//int ls_empty(List *L);
-//void ls_sort(List *L, int (*comparator)(void *data1, void *data2));
-//void *ls_ref(List *L, int i);
-//void ls_set(List *L, int i, void *data);
+void ls_reverse(List *L);
+void ls_sort(List *L, int (*comparator)(void *data1, void *data2));
+void *ls_ref(List *L, int i);
+void ls_set(List *L, int i, void *data);
 
 /**********************************************************************
 
        		F U N C T I O N   I M P L E M E N T A T I O N S 
 
 ***********************************************************************/
-List *make_ls(void (*printer)(void *key)) {
+List *make_ls(void (*printer)(void *data)) {
   List *L = malloc(sizeof(List));
   L->printer = printer;
   L->size = 0;
@@ -73,85 +73,126 @@ List *make_ls(void (*printer)(void *key)) {
   return L;
 }
 
-void insert_after(List *L, void *ls_item, void *new_item) {
-  if(L->head != NULL) { // make sure ls is not empty
-    ls_node *head = L->head;
-    while(head->data != ls_item) {// stop once on node N or last element of ls
-      if(head->next == NULL) {
-        head = NULL;
-        break; //stop if next is NULL -- didnt find ls_item in L
-      }
-      head = head->next;
-    }
-    if(head != NULL) { // foud node N is ls L
-      ls_node *rest = head->next;
-      ls_node *new_node = malloc(sizeof(ls_node));
-      new_node->data = new_item;
-      new_node->next = rest;
-      head->next = new_node;
-    }
+void delete_ls(List *L) {
+  ls_node *current = L->head;
+  while(current != NULL) {
+    ls_node *next = current->next;
+    free(current);
+    current = next;
   }
+  free(L);
 }
 
 void insert_beggining(List *L, void *item) {
   ls_node *head = malloc(sizeof(ls_node));
   head->data = item;
-  if(L->head == NULL) { // ls is NULL
-    head->next = NULL;
-    L->head = head;
-    L->tail = head;
-  }
-  else {
-    head->next = L->head;
-    L->head = head;
-  }
+  head->next = L->head;
+  L->head = head;
+  if(!L->size) L->tail = head;
   L->size = L->size++;
 }  
 
-void insert_end(List *L, void *item) {
+void insert_after(List *L, void *ls_item, void *new_item) {
   ls_node *new_node = malloc(sizeof(ls_node));
-  new_node->data = item;
+  new_node->data = new_item;
   new_node->next = NULL;
-  if(L->size) {
-    L->head = new_node;
-    L->tail = new_node;
+  ls_node *current = L->head;
+  while(current != NULL) {
+    if(current->data == ls_item) {
+      ls_node *rest = current->next;
+      current->next = new_node;
+      new_node->next = rest;
+      if(rest == NULL) L->tail = new_node;
+      L->size = L->size++;
+      break;
+    }
+    current = current->next;
   }
-  else {
-    L->tail->next = new_node;
-    L->tail = new_node;
-  }
+}
+
+void insert_end(List *L, void *item) {
+  ls_node *tail = malloc(sizeof(ls_node));
+  tail->data = item;
+  tail->next = NULL;
+  if(L->size) L->tail->next = tail;
+  L->tail = tail;
+  if(!L->size) L->head = tail;
   L->size = L->size++;
 }
 
-//finish implementing this function
 void remove_item(List *L, void *item) {
-  if(L->size) {
-    ls_node *current = L->head;
-    int removed = 0;
-    while(current != NULL) {
-     //check for pointer eq and size issues like removing singleton item 
+  ls_node *current = L->head;
+  ls_node *prev = L->head;
+  while(current != NULL) {
+    if(current->data == item) {
+      prev->next = current->next;
+      free(current);
+      L->size = L->size--;
+      break;
     }
-    if(removed) L->size = L->size--;
+    prev = current;
+    current = current->next;
   }
 }
 
-void ls_print(List *L) {
-  if(L->size) {
-    ls_node *current = L->head;
-    while(current != NULL) {
-      L->printer(current->data);
-      current = current->next;
-    }
+int ls_contains(List *L, void *item) {
+  ls_node *current = L->head;
+  while(current != NULL) {
+    if (current->data == item) return 1;
+    current = current->next;
   }
+  return 0;
 }
 
 int ls_length(List *L) {
   return L->size;
 }
 
+int ls_empty(List *L) {
+  return L->size ? 0 : 1;
+}
+
+void ls_print(List *L) {
+  ls_node *current = L->head;
+  while(current != NULL) {
+    L->printer(current->data);
+    current = current->next;
+  }
+}
+
+//should i perform a deep copy and actually make a new list?
 void ls_append(List *L1, List *L2) {
-  //hopefully the lss have the same type bc of print function 
   L1->tail->next = L2->head;
   L1->tail = L2->tail;
   L1->size = L1->size + L2->size;
+}
+
+void ls_reverse(List *L) {
+  ls_node *old_ls = L->head;
+  ls_node *new_ls = NULL;
+  while(old_ls != NULL) {
+    ls_node *head = old_ls;
+    old_ls = old_ls->next;
+    head->next = new_ls;
+    new_ls = head;
+  }
+  L->tail = L->head;
+  L->head = new_ls;
+}
+
+void ls_sort(List *L, int (*comparator)(void *data1, void *data2)) {
+}
+
+void *ls_ref(List *L, int i) {
+  int j = 0;
+  ls_node *current = L->head;
+  while(j < i) current = current->next;
+  return current->data;
+}
+
+void ls_set(List *L, int i, void *data) {
+  int j = 0;
+  ls_node *current = L->head;
+  while(j < i) current = current->next;
+  current->data = data;
 }
