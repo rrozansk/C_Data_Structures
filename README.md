@@ -5,6 +5,8 @@ always pointed to by a void pointer.
 
 Current Implementations of:
 
-Stacks
-Queues
+Stacks\n
+Queues\n
+Linked Lists\n
+Binary Trees\n
 
