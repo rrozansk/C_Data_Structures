@@ -9,9 +9,7 @@
  Created: 9/6/15
  Last Edited: 10/5/15
  
- Just a simple linked ls library where every node in the ls points to the
- data instead of storing it itself. This allows the user to store there own
- data structures in a linked ls and just point to them. 
+ A linked ls library for use with arbitrary data structures
 */
 
 /**********************************************************************
