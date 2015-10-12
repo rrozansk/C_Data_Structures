@@ -13,22 +13,22 @@ int main() {
   stack_print(my_stack);
 
   int foo = 5;
-  push(my_stack, &foo);
+  stack_push(my_stack, &foo);
   printf("empty stack? %d\n", stack_empty(my_stack));
   if(!stack_empty(my_stack)) {
     printf("peek: ");
-    print(peek(my_stack));
+    print(stack_peek(my_stack));
   }
   stack_print(my_stack);
   printf("stack size: %d\n", stack_size(my_stack));
   printf("contains 5? %d\n", stack_contains(my_stack, &foo));
-  void *data = pop(my_stack);
+  void *data = stack_pop(my_stack);
   stack_print(my_stack);
   printf("stack size: %d\n", stack_size(my_stack));
   if(!stack_empty(my_stack)) {
     printf("HERE\n");
     printf("peek: ");
-    print(peek(my_stack));
+    print(stack_peek(my_stack));
   }
   printf("empty stack? %d\n", stack_empty(my_stack));
   printf("stack size: %d\n", stack_size(my_stack));

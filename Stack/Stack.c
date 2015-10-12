@@ -42,7 +42,7 @@ typedef struct Stack {
 ***********************************************************************/
 Stack *make_stack(void(*printer)(void *data)); //make me a stack
 void delete_stack(Stack *S);                   //delete the stack
-void stack_push(Stack *S, void *item);               //add an item to the top
+Stack *stack_push(Stack *S, void *item);               //add an item to the top
 void *stack_pop(Stack *S);                           //return the Frame at the top of the stack and side effect the stack
 void *stack_peek(Stack *S);                    //return the Frame at the top (without removing it)
 int stack_contains(Stack *S, void *data);      //returns whether the stack contains the data
@@ -73,12 +73,13 @@ void delete_stack(Stack *S) {
   free(S);
 }
 
-void stack_push(Stack *S, void *data) {
+Stack *stack_push(Stack *S, void *data) {
   Frame *F = malloc(sizeof(Frame));
   F->data = data;
   F->next = S->top;
   S->top = F;
   S->size = S->size++;
+  return S;
 }
 
 void *stack_pop(Stack *S) {
