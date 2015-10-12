@@ -7,7 +7,7 @@
 /* 
  Author: Ryan Rozanski
  Created: 9/6/15
- Last Edited: 10/5/15
+ Last Edited: 10/11/15
  
  A linked ls library for use with arbitrary data structures
 */
@@ -41,13 +41,9 @@ typedef struct List {
              		F U N C T I O N   P R O T O T Y P E S
 
 ***********************************************************************/
-
-//PERHAPS RETURN THE POINTER TO LIST SO WE CAN LIST ARBITRARY FUNCTION CALLS TO
-//LOOK MORE FUNCTIONALLY
-
 List *make_ls(void (*printer)(void *data));
 void delete_ls(List *L);
-List *ls_insert_beggining(List *L, void *item);
+List *ls_insert_beginning(List *L, void *item);
 List *ls_insert_after(List *L, void *ls_item, void *new_item);
 List *ls_insert_end(List *L, void *item);
 List *ls_remove_item(List *L, void *item);
@@ -85,7 +81,7 @@ void delete_ls(List *L) {
   free(L);
 }
 
-List *insert_beggining(List *L, void *item) {
+List *ls_insert_beginning(List *L, void *item) {
   ls_node *head = malloc(sizeof(ls_node));
   head->data = item;
   head->next = L->head;
@@ -95,7 +91,7 @@ List *insert_beggining(List *L, void *item) {
   return L;
 }  
 
-List *insert_after(List *L, void *ls_item, void *new_item) {
+List *ls_insert_after(List *L, void *ls_item, void *new_item) {
   ls_node *new_node = malloc(sizeof(ls_node));
   new_node->data = new_item;
   new_node->next = NULL;
@@ -114,7 +110,7 @@ List *insert_after(List *L, void *ls_item, void *new_item) {
   return L;
 }
 
-List *insert_end(List *L, void *item) {
+List *ls_insert_end(List *L, void *item) {
   ls_node *tail = malloc(sizeof(ls_node));
   tail->data = item;
   tail->next = NULL;
