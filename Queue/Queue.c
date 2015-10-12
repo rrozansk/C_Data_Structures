@@ -43,7 +43,7 @@ typedef struct Queue {
 ***********************************************************************/
 Queue *make_queue(void (*printer)(void *data)); //make a new queue
 void delete_queue(Queue *Q);                    //delete a queue
-void queue_enqueue(Queue *Q, void *data);             //add an item at the tail
+Queue *queue_enqueue(Queue *Q, void *data);             //add an item at the tail
 void *queue_dequeue(Queue *Q);                        //remove the item at the head and return it
 void *queue_peek(Queue *Q);                     //return the item at the head (without removing it)
 int queue_contains(Queue *Q, void *data);       //return the waiting position of data in the queue 
@@ -75,7 +75,7 @@ void delete_queue(Queue *Q) {
   free(Q);
 }
 
-void queue_enqueue(Queue *Q, void *data) {
+Queue *queue_enqueue(Queue *Q, void *data) {
   q_node *N = malloc(sizeof(q_node));
   N->next = NULL;
   N->data = data;
@@ -88,7 +88,9 @@ void queue_enqueue(Queue *Q, void *data) {
     Q->tail = N;
   }
   Q->size = Q->size++;
+  return Q;
 }
+
 void *queue_dequeue(Queue *Q) {
   q_node *N = Q->head;
   Q->head = N->next;

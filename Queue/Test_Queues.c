@@ -13,9 +13,9 @@ int main() {
   queue_print(my_queue);
 
   int foo = 5;
-  enqueue(my_queue, &foo);
-  enqueue(my_queue, &foo);
-  enqueue(my_queue, &foo);
+  queue_enqueue(my_queue, &foo);
+  queue_enqueue(my_queue, &foo);
+  queue_enqueue(my_queue, &foo);
   printf("empty queue? %d\n", queue_empty(my_queue));
   if(queue_peek(my_queue) != NULL) {
     printf("peek: ");
@@ -24,9 +24,9 @@ int main() {
   queue_print(my_queue);
   printf("queue size: %d\n", queue_size(my_queue));
   //throwing away all the return values
-  dequeue(my_queue);
-  dequeue(my_queue);
-  dequeue(my_queue);
+  queue_dequeue(my_queue);
+  queue_dequeue(my_queue);
+  queue_dequeue(my_queue);
   queue_print(my_queue);
   printf("queue size: %d\n", queue_size(my_queue));
   if(!queue_empty(my_queue)) {
