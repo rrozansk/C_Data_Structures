@@ -30,6 +30,7 @@ typedef struct ls_node {
 } ls_node;
 
 typedef struct List {
+  int (*comparator)(void *data1, void *data2);
   void(*printer)(void *data);
   ls_node *head;
   ls_node *tail;
@@ -41,19 +42,19 @@ typedef struct List {
              		F U N C T I O N   P R O T O T Y P E S
 
 ***********************************************************************/
-List *make_ls(void (*printer)(void *data));
+List *make_ls(void (*printer)(void *data), int (*comparator)(void *data1, void *data2));
 void delete_ls(List *L);
 List *ls_insert_beginning(List *L, void *item);
 List *ls_insert_after(List *L, void *ls_item, void *new_item);
 List *ls_insert_end(List *L, void *item);
-List *ls_remove_item(List *L, void *item);
+List *ls_remove(List *L, void *item);
 int ls_contains(List *L, void *item);
 int ls_length(List *L);
 int ls_empty(List *L);
 void ls_print(List *L); 
 List *ls_append(List *L1, List *L2);
 List *ls_reverse(List *L);
-List *ls_sort(List *L, int (*comparator)(void *data1, void *data2));
+List *ls_sort(List *L);
 void *ls_ref(List *L, int i);
 List *ls_set(List *L, int i, void *data);
 
@@ -62,8 +63,9 @@ List *ls_set(List *L, int i, void *data);
        		F U N C T I O N   I M P L E M E N T A T I O N S 
 
 ***********************************************************************/
-List *make_ls(void (*printer)(void *data)) {
+List *make_ls(void (*printer)(void *data), int (*comparator)(void *data1, void *data2)) {
   List *L = malloc(sizeof(List));
+  L->comparator = comparator;
   L->printer = printer;
   L->size = 0;
   L->head = NULL;
@@ -97,7 +99,7 @@ List *ls_insert_after(List *L, void *ls_item, void *new_item) {
   new_node->next = NULL;
   ls_node *current = L->head;
   while(current != NULL) {
-    if(current->data == ls_item) {
+    if(L->comparator(current->data, ls_item) == 0) {
       ls_node *rest = current->next;
       current->next = new_node;
       new_node->next = rest;
@@ -121,12 +123,21 @@ List *ls_insert_end(List *L, void *item) {
   return L;
 }
 
-List *remove_item(List *L, void *item) {
+List *ls_remove(List *L, void *item) {
   ls_node *current = L->head;
-  ls_node *prev = L->head;
+  ls_node *prev = NULL;
   while(current != NULL) {
-    if(current->data == item) {
-      prev->next = current->next;
+    if(L->comparator(current->data, item) == 0) {
+      if(prev == NULL) { //removed the first thing in the list
+        L->head = current->next;
+      }
+      else if(current->next == NULL) { //removed last thing in list
+        prev->next = NULL;
+        L->tail = prev;
+      }
+      else {
+        prev->next = current->next;
+      }
       free(current);
       L->size = L->size--;
       break;
@@ -140,7 +151,7 @@ List *remove_item(List *L, void *item) {
 int ls_contains(List *L, void *item) {
   ls_node *current = L->head;
   while(current != NULL) {
-    if (current->data == item) return 1;
+    if (L->comparator(current->data, item) == 0) return 1;
     current = current->next;
   }
   return 0;
@@ -193,7 +204,7 @@ ls_node *merge(ls_node *L1, ls_node *L2) {
 
 //merge sort --> maybe use quick sort. it is inplace although merge sort seems
 //better bc we will be jumping around memory instead of just being in an array
-List *ls_sort(List *L, int (*comparator)(void *data1, void *data2)) {
+List *ls_sort(List *L) {
   int subls_size = L->size/2;
   ls_node *L1 = merge_sort(L, 0, subls_size);
   ls_node *L2 = merge_sort(L, subls_size+1, L->size);
@@ -204,14 +215,14 @@ List *ls_sort(List *L, int (*comparator)(void *data1, void *data2)) {
 void *ls_ref(List *L, int i) {
   int j = 0;
   ls_node *current = L->head;
-  while(j < i) current = current->next;
+  for(; j<i; j++) current = current->next;
   return current->data;
 }
 
 List *ls_set(List *L, int i, void *data) {
   int j = 0;
   ls_node *current = L->head;
-  while(j < i) current = current->next;
+  for(; j<i; j++) current = current->next;
   current->data = data;
   return L;
 }
