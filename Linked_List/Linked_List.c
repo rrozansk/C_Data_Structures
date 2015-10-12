@@ -41,21 +41,25 @@ typedef struct List {
              		F U N C T I O N   P R O T O T Y P E S
 
 ***********************************************************************/
+
+//PERHAPS RETURN THE POINTER TO LIST SO WE CAN LIST ARBITRARY FUNCTION CALLS TO
+//LOOK MORE FUNCTIONALLY
+
 List *make_ls(void (*printer)(void *data));
 void delete_ls(List *L);
-void ls_insert_beggining(List *L, void *item);
-void ls_insert_after(List *L, void *ls_item, void *new_item);
-void ls_insert_end(List *L, void *item);
-void ls_remove_item(List *L, void *item);
+List *ls_insert_beggining(List *L, void *item);
+List *ls_insert_after(List *L, void *ls_item, void *new_item);
+List *ls_insert_end(List *L, void *item);
+List *ls_remove_item(List *L, void *item);
 int ls_contains(List *L, void *item);
 int ls_length(List *L);
 int ls_empty(List *L);
 void ls_print(List *L); 
-void ls_append(List *L1, List *L2);
-void ls_reverse(List *L);
-void ls_sort(List *L, int (*comparator)(void *data1, void *data2));
+List *ls_append(List *L1, List *L2);
+List *ls_reverse(List *L);
+List *ls_sort(List *L, int (*comparator)(void *data1, void *data2));
 void *ls_ref(List *L, int i);
-void ls_set(List *L, int i, void *data);
+List *ls_set(List *L, int i, void *data);
 
 /**********************************************************************
 
@@ -81,16 +85,17 @@ void delete_ls(List *L) {
   free(L);
 }
 
-void insert_beggining(List *L, void *item) {
+List *insert_beggining(List *L, void *item) {
   ls_node *head = malloc(sizeof(ls_node));
   head->data = item;
   head->next = L->head;
   L->head = head;
   if(!L->size) L->tail = head;
   L->size = L->size++;
+  return L;
 }  
 
-void insert_after(List *L, void *ls_item, void *new_item) {
+List *insert_after(List *L, void *ls_item, void *new_item) {
   ls_node *new_node = malloc(sizeof(ls_node));
   new_node->data = new_item;
   new_node->next = NULL;
@@ -106,9 +111,10 @@ void insert_after(List *L, void *ls_item, void *new_item) {
     }
     current = current->next;
   }
+  return L;
 }
 
-void insert_end(List *L, void *item) {
+List *insert_end(List *L, void *item) {
   ls_node *tail = malloc(sizeof(ls_node));
   tail->data = item;
   tail->next = NULL;
@@ -116,9 +122,10 @@ void insert_end(List *L, void *item) {
   L->tail = tail;
   if(!L->size) L->head = tail;
   L->size = L->size++;
+  return L;
 }
 
-void remove_item(List *L, void *item) {
+List *remove_item(List *L, void *item) {
   ls_node *current = L->head;
   ls_node *prev = L->head;
   while(current != NULL) {
@@ -131,6 +138,7 @@ void remove_item(List *L, void *item) {
     prev = current;
     current = current->next;
   }
+  return L;
 }
 
 int ls_contains(List *L, void *item) {
@@ -159,13 +167,14 @@ void ls_print(List *L) {
 }
 
 //should i perform a deep copy and actually make a new list?
-void ls_append(List *L1, List *L2) {
+List *ls_append(List *L1, List *L2) {
   L1->tail->next = L2->head;
   L1->tail = L2->tail;
   L1->size = L1->size + L2->size;
+  return L1;
 }
 
-void ls_reverse(List *L) {
+List *ls_reverse(List *L) {
   ls_node *old_ls = L->head;
   ls_node *new_ls = NULL;
   while(old_ls != NULL) {
@@ -176,6 +185,7 @@ void ls_reverse(List *L) {
   }
   L->tail = L->head;
   L->head = new_ls;
+  return L;
 }
 
 // ...ikd if this is a good idea...
@@ -187,11 +197,12 @@ ls_node *merge(ls_node *L1, ls_node *L2) {
 
 //merge sort --> maybe use quick sort. it is inplace although merge sort seems
 //better bc we will be jumping around memory instead of just being in an array
-void ls_sort(List *L, int (*comparator)(void *data1, void *data2)) {
+List *ls_sort(List *L, int (*comparator)(void *data1, void *data2)) {
   int subls_size = L->size/2;
   ls_node *L1 = merge_sort(L, 0, subls_size);
   ls_node *L2 = merge_sort(L, subls_size+1, L->size);
   L->head = merge(L1, L2);
+  return L;
 }
 
 void *ls_ref(List *L, int i) {
@@ -201,9 +212,10 @@ void *ls_ref(List *L, int i) {
   return current->data;
 }
 
-void ls_set(List *L, int i, void *data) {
+List *ls_set(List *L, int i, void *data) {
   int j = 0;
   ls_node *current = L->head;
   while(j < i) current = current->next;
   current->data = data;
+  return L;
 }
