@@ -42,7 +42,9 @@ typedef struct Queue {
 
 ***********************************************************************/
 Queue *make_queue(void (*printer)(void *data)); //make a new queue
-void delete_queue(Queue *Q);                    //delete a queue
+void free_queue(Queue *Q);                      //free a queue
+void delete_queue(Queue *Q);                    //delete a queue (free's data)
+Queue *queue_copy(Queue *Q);                    //copy a queue
 Queue *queue_enqueue(Queue *Q, void *data);     //add an item at the tail
 void *queue_dequeue(Queue *Q);                  //remove the item at the head and return it
 void *queue_peek(Queue *Q);                     //return the item at the head (without removing it)
@@ -65,14 +67,60 @@ Queue *make_queue(void (*printer)(void *data)) {
   return Q;
 }
 
+void free_queue(Queue *Q) {
+  q_node *current = Q->head;
+  q_node *prev = Q->head;
+  while(current != NULL) {
+    current = current->next;
+    free(prev);
+    prev = current;
+  }
+  Q->printer = NULL;
+  Q->head = NULL;
+  Q->tail = NULL;
+  Q->size = 0;
+}
+
 void delete_queue(Queue *Q) {
   q_node *current = Q->head;
+  q_node *prev = Q->head;
   while(current != NULL) {
-    q_node *temp = current->next;
-    free(current);
-    current = temp;
+    current = current->next;
+    free(prev->data);
+    free(prev);
+    prev = current;
   }
-  free(Q);
+  Q->printer = NULL;
+  Q->head = NULL;
+  Q->tail = NULL;
+  Q->size = 0;
+}
+
+Queue *queue_copy(Queue *Q) {
+  Queue *C = malloc(sizeof(Queue));
+  C->printer = Q->printer;
+  C->size = Q->size;
+  if(Q->size == 0) {
+    C->head = NULL;
+    C->tail = NULL;
+  }
+  else {
+    q_node *new_head = malloc(sizeof(q_node));
+    new_head->data = Q->head->data;
+    C->head = new_head;
+    q_node *prev = new_head;
+    q_node *current = Q->head->next;
+    while(current != NULL) {
+      q_node *new_node = malloc(sizeof(q_node));
+      new_node->data = current->data;
+      prev->next = new_node;
+      prev = new_node;
+      current = current->next;
+    }
+    prev->next = NULL;
+    C->tail = prev;
+  }
+  return C;
 }
 
 Queue *queue_enqueue(Queue *Q, void *data) {

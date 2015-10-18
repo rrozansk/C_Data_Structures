@@ -46,6 +46,7 @@ typedef struct List {
 List *make_ls(void (*printer)(void *data), int (*comparator)(void *data1, void *data2));
 void free_ls(List *L);
 void delete_ls(List *L);
+List *ls_copy(List *L);
 List *ls_insert_beginning(List *L, void *item);
 List *ls_insert_after(List *L, void *ls_item, void *new_item);
 List *ls_insert_end(List *L, void *item);
@@ -54,7 +55,6 @@ int ls_contains(List *L, void *item);
 int ls_length(List *L);
 int ls_empty(List *L);
 void ls_print(List *L); 
-List *ls_copy(List *L);
 List *ls_append(List *L1, List *L2);
 List *ls_reverse(List *L);
 List *ls_sort(List *L);
@@ -103,6 +103,34 @@ void delete_ls(List *L) {
   L->head = NULL;
   L->tail = NULL;
   L->size = 0;
+}
+
+List *ls_copy(List *L) {
+  List *C = malloc(sizeof(List));
+  C->printer = L->printer;
+  C->comparator = L->comparator;
+  C->size = L->size;
+  if(L->size == 0) {
+    C->head = NULL;
+    C->tail = NULL;
+  }
+  else {
+    ls_node *new_head = malloc(sizeof(ls_node));
+    new_head->data = L->head->data;
+    C->head = new_head;
+    ls_node *prev = new_head;
+    ls_node *current = L->head->next;
+    while(current != NULL) {
+      ls_node *new_node = malloc(sizeof(ls_node));
+      new_node->data = current->data;
+      prev->next = new_node;
+      prev = new_node;
+      current = current->next;
+    }
+    prev->next = NULL;
+    C->tail = prev;
+  }
+  return C;
 }
 
 List *ls_insert_beginning(List *L, void *item) {
@@ -193,34 +221,6 @@ void ls_print(List *L) {
     L->printer(current->data);
     current = current->next;
   }
-}
-
-List *ls_copy(List *L) {
-  List *C = malloc(sizeof(List));
-  C->printer = L->printer;
-  C->comparator = L->comparator;
-  C->size = L->size;
-  if(L->size == 0) {
-    C->head = NULL;
-    C->tail = NULL;
-  }
-  else {
-    ls_node *new_head = malloc(sizeof(ls_node));
-    new_head->data = L->head->data;
-    C->head = new_head;
-    ls_node *prev = new_head;
-    ls_node *current = L->head->next;
-    while(current != NULL) {
-      ls_node *new_node = malloc(sizeof(ls_node));
-      new_node->data = current->data;
-      prev->next = new_node;
-      prev = new_node;
-      current = current->next;
-    }
-    prev->next = NULL;
-    C->tail = prev;
-  }
-  return C;
 }
 
 List *ls_append(List *L1, List *L2) {

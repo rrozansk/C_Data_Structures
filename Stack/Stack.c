@@ -41,9 +41,11 @@ typedef struct Stack {
 
 ***********************************************************************/
 Stack *make_stack(void(*printer)(void *data)); //make me a stack
-void delete_stack(Stack *S);                   //delete the stack
-Stack *stack_push(Stack *S, void *item);               //add an item to the top
-void *stack_pop(Stack *S);                           //return the Frame at the top of the stack and side effect the stack
+void free_stack(Stack *S);                     //free the stack
+void delete_stack(Stack *S);                   //delete the stack (free's data)
+Stack *stack_copy(Stack *S);                   //copy the stack
+Stack *stack_push(Stack *S, void *item);       //add an item to the top
+void *stack_pop(Stack *S);                     //return the Frame at the top of the stack and side effect the stack
 void *stack_peek(Stack *S);                    //return the Frame at the top (without removing it)
 int stack_contains(Stack *S, void *data);      //returns whether the stack contains the data
 int stack_size(Stack *S);                      //return the number of Frames in the stack
@@ -63,14 +65,55 @@ Stack *make_stack(void(*printer)(void *data)) {
   return S;
 }
 
+void free_stack(Stack *S) {
+  Frame *current = S->top;
+  Frame *prev = S->top;
+  while(current != NULL) {
+    current = current->next;
+    free(prev);
+    current = prev;
+  }
+  S->printer = NULL;
+  S->top = NULL;
+  S->size = 0;
+}
+
 void delete_stack(Stack *S) {
   Frame *current = S->top;
+  Frame *prev = S->top;
   while(current != NULL) {
-    Frame *temp = current->next;
-    free(current);
-    current = temp;
+    current = current->next;
+    free(prev->data);
+    free(prev);
+    current = prev;
   }
-  free(S);
+  S->printer = NULL;
+  S->top = NULL;
+  S->size = 0;
+}
+
+Stack *stack_copy(Stack *S) {
+  Stack *new_stk = malloc(sizeof(Stack));
+  new_stk->printer = S->printer;
+  new_stk->size = S->size;
+  if(S->size == 0) {
+    S->top = NULL;
+  }
+  else {
+    Frame *new_top = malloc(sizeof(Frame));
+    new_top->data = S->top->data;
+    new_stk->top = new_top;
+    Frame *current = S->top->next;
+    Frame *prev = new_top;
+    while(current != NULL) {
+      Frame *new_frame = malloc(sizeof(Frame));
+      new_frame->data = current->data;
+      prev->next = new_frame;
+      prev = new_frame;
+      current = current->next;
+    }
+  }
+  return new_stk;
 }
 
 Stack *stack_push(Stack *S, void *data) {
