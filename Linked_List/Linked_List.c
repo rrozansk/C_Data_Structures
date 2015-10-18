@@ -56,6 +56,8 @@ void ls_print(List *L);
 List *ls_append(List *L1, List *L2);
 List *ls_reverse(List *L);
 List *ls_sort(List *L);
+ls_node *merge_sort(ls_node *head, int size, List *L);
+ls_node *merge(ls_node *l, ls_node *s, List *L);
 void *ls_ref(List *L, int i);
 List *ls_set(List *L, int i, void *data);
 
@@ -161,7 +163,7 @@ List *ls_remove(List *L, void *item) {
 int ls_contains(List *L, void *item) {
   ls_node *current = L->head;
   while(current != NULL) {
-    if (L->comparator(current->data, item) == 0) return 1;
+    if(L->comparator(current->data, item) == 0) return 1;
     current = current->next;
   }
   return 0;
@@ -172,7 +174,7 @@ int ls_length(List *L) {
 }
 
 int ls_empty(List *L) {
-  return L->size ? 0 : 1; //maybe return L->size since non-zero means not empty
+  return L->size ? 0 : 1; 
 }
 
 void ls_print(List *L) {
@@ -206,34 +208,45 @@ List *ls_reverse(List *L) {
   return L;
 }
 
-//assume lists with same type (theoritically have same printer and comparator)
-ls_node *merge(ls_node *L1, ls_node *L2) {
-  //these lists should only ever differ by no more than 1
-  ls_node *head;
-  while(L1 != NULL || L2 != NULL) {
-  
+ls_node *merge(ls_node *l, ls_node *s, List *L) {
+  if(l == NULL)
+    return s;
+  if(s == NULL)
+    return l;
+  int comp = L->comparator(l->data,s->data);
+  if(comp <= 0) { //comp == 0 || comp == -1
+    l->next = merge(l->next, s, L);
+    return l;
   }
-  return head;
+  else { //comp == 1
+    s->next = merge(l, s->next, L);
+    return s;
+  }
 }
 
-ls_node *merge_sort(ls_node *L, int size) {
-  if(size<=1)
-    return L;
+ls_node *merge_sort(ls_node *head, int size, List *L) {
+  if(size <= 1) {
+    return head;
+  }
   else {
-    ls_node *first_half = merge_sort(L, size/2); 
-    //iterate to get to second half? -->also size problem of odd or not
-    ls_node *second_half = merge_sort(L, size/2);
-    return merge(first_half, second_half);
+    int i = 0;
+    int new_size = size/2;
+    ls_node *new_head = head;
+    for(;i<new_size-1;i++) 
+      new_head = new_head->next;
+    ls_node *tmp = new_head;
+    new_head = new_head->next;
+    tmp->next = NULL;
+    return merge(merge_sort(head, new_size, L), merge_sort(new_head, size-new_size, L), L);
   }
 }
 
 List *ls_sort(List *L) {
-  ls_node *head = merge_sort(L->head, L->size-1);
-  L->head = head;
-  //can i do this better...if not this is HIGHLY unfortunate
-  while(head->next != NULL)
-    head = head->next;
-  L->tail = head;
+  L->head = merge_sort(L->head, L->size, L);
+  L->tail = L->head;
+  while(L->tail->next != NULL) {
+    L->tail = L->tail->next;
+  }
   return L;
 }
 
@@ -244,6 +257,7 @@ void *ls_ref(List *L, int i) {
   return current->data;
 }
 
+//memory leak if i dont free old data. but what is someone else has it from ref
 List *ls_set(List *L, int i, void *data) {
   int j = 0;
   ls_node *current = L->head;
