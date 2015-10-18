@@ -61,6 +61,11 @@ int main() {
 
   ls = cons(val1, cons(val2, cons(val3, cons(val4, cons(val5, cons(val6, snoc(val8, snoc(val7, snoc(val6, ls)))))))));
   ls_print(ls);
+  List *A = ls_append(ls, ls);
+  ls_print(A);
+  ls_sort(A);
+  printf("sorted A\n");
+  ls_print(A);
   printf("car -> %d\n", *(int *)car(ls));
   printf("list reverse\n");
   ls_reverse(ls);

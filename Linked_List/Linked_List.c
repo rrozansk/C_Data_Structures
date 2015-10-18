@@ -7,7 +7,7 @@
 /* 
  Author: Ryan Rozanski
  Created: 9/6/15
- Last Edited: 10/13/15
+ Last Edited: 10/18/15
  
  A linked ls library for use with arbitrary data structures
 */
@@ -44,22 +44,24 @@ typedef struct List {
 
 ***********************************************************************/
 List *make_ls(void (*printer)(void *data), int (*comparator)(void *data1, void *data2));
-void delete_ls(List *L);
+void delete_ls(List *L);                                //fix ptr's hanging around
+void free_ls(List *L);                                  //implement ->free ls but not data
 List *ls_insert_beginning(List *L, void *item);
 List *ls_insert_after(List *L, void *ls_item, void *new_item);
 List *ls_insert_end(List *L, void *item);
-List *ls_remove(List *L, void *item);
+List *ls_remove(List *L, void *item);                   //should i remove all occurences?
 int ls_contains(List *L, void *item);
 int ls_length(List *L);
 int ls_empty(List *L);
 void ls_print(List *L); 
+List *ls_copy(List *L);
 List *ls_append(List *L1, List *L2);
 List *ls_reverse(List *L);
 List *ls_sort(List *L);
-ls_node *merge_sort(ls_node *head, int size, List *L);
-ls_node *merge(ls_node *l, ls_node *s, List *L);
+ls_node *merge_sort(ls_node *head, int size, List *L); //should not be called by user
+ls_node *merge(ls_node *l, ls_node *s, List *L);       //should not be called by user
 void *ls_ref(List *L, int i);
-List *ls_set(List *L, int i, void *data);
+List *ls_set(List *L, int i, void *data);              //not sure what the correct behavior of this should be
 
 /**********************************************************************
 
@@ -76,7 +78,6 @@ List *make_ls(void (*printer)(void *data), int (*comparator)(void *data1, void *
   return L;
 }
 
-//need to fix so pointer to the next node are freed w/o mem map error
 void delete_ls(List *L) {
   ls_node *current = L->head;
   ls_node *next;
@@ -92,6 +93,10 @@ void delete_ls(List *L) {
   free(L->tail);
   L->tail = NULL;
   L->size = 0;
+}
+
+void free_ls(List *L) {
+
 }
 
 List *ls_insert_beginning(List *L, void *item) {
@@ -134,7 +139,6 @@ List *ls_insert_end(List *L, void *item) {
   return L;
 }
 
-//should remove all?
 List *ls_remove(List *L, void *item) {
   ls_node *current = L->head;
   ls_node *prev = NULL;
@@ -185,12 +189,51 @@ void ls_print(List *L) {
   }
 }
 
-//should i perform a deep copy and actually make a new list?
+List *ls_copy(List *L) {
+  List *C = malloc(sizeof(List));
+  C->printer = L->printer;
+  C->comparator = L->comparator;
+  C->size = L->size;
+  if(L->size == 0) {
+    C->head = NULL;
+    C->tail = NULL;
+  }
+  else {
+    ls_node *new_head = malloc(sizeof(ls_node));
+    new_head->data = L->head->data;
+    C->head = new_head;
+    ls_node *prev = new_head;
+    ls_node *current = L->head->next;
+    while(current != NULL) {
+      ls_node *new_node = malloc(sizeof(ls_node));
+      new_node->data = current->data;
+      prev->next = new_node;
+      prev = new_node;
+      current = current->next;
+    }
+    prev->next = NULL;
+    C->tail = prev;
+  }
+  return C;
+}
+
 List *ls_append(List *L1, List *L2) {
-  L1->tail->next = L2->head;
-  L1->tail = L2->tail;
-  L1->size = L1->size + L2->size;
-  return L1;
+  if(L1->size == 0)
+    return ls_copy(L2);
+  if(L2->size == 0)
+    return ls_copy(L1);
+  else {
+    List *l1 = ls_copy(L1);
+    List *l2 = ls_copy(L2);
+    List *L = make_ls(L1->printer, L1->comparator);
+    L->size = L1->size + L2->size;
+    L->head = l1->head;
+    L->tail = l2->tail;
+    l1->tail->next = l2->head;
+    free(l1);
+    free(l2);
+    return L;
+  }
 }
 
 List *ls_reverse(List *L) {
@@ -257,7 +300,6 @@ void *ls_ref(List *L, int i) {
   return current->data;
 }
 
-//memory leak if i dont free old data. but what is someone else has it from ref
 List *ls_set(List *L, int i, void *data) {
   int j = 0;
   ls_node *current = L->head;
