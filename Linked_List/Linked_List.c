@@ -44,8 +44,8 @@ typedef struct List {
 
 ***********************************************************************/
 List *make_ls(void (*printer)(void *data), int (*comparator)(void *data1, void *data2));
-void delete_ls(List *L);                                //fix ptr's hanging around
-void free_ls(List *L);                                  //implement ->free ls but not data
+void free_ls(List *L);
+void delete_ls(List *L);
 List *ls_insert_beginning(List *L, void *item);
 List *ls_insert_after(List *L, void *ls_item, void *new_item);
 List *ls_insert_end(List *L, void *item);
@@ -78,25 +78,31 @@ List *make_ls(void (*printer)(void *data), int (*comparator)(void *data1, void *
   return L;
 }
 
-void delete_ls(List *L) {
+void free_ls(List *L) {
   ls_node *current = L->head;
-  ls_node *next;
+  ls_node *prev = L->head;
   while(current != NULL) {
-    next = current->next;
-    free(current->data);
-    //need to free current->next 
-    free(current);
-    current = next;
+    current = current->next;
+    free(prev);
+    prev = current;
   }
-  free(L->head);
-  L->head = NULL;
-  free(L->tail);
-  L->tail = NULL;
-  L->size = 0;
+  free(L);
 }
 
-void free_ls(List *L) {
-
+void delete_ls(List *L) {
+  ls_node *current = L->head;
+  ls_node *prev = L->head;
+  while(current != NULL) {
+    current = current->next;
+    free(prev->data);
+    free(prev);
+    prev = current;
+  }
+  L->printer = NULL;
+  L->comparator = NULL;
+  L->head = NULL;
+  L->tail = NULL;
+  L->size = 0;
 }
 
 List *ls_insert_beginning(List *L, void *item) {
@@ -225,7 +231,9 @@ List *ls_append(List *L1, List *L2) {
   else {
     List *l1 = ls_copy(L1);
     List *l2 = ls_copy(L2);
-    List *L = make_ls(L1->printer, L1->comparator);
+    List *L = malloc(sizeof(List));
+    L->printer = L1->printer;
+    L->comparator = L1->comparator;
     L->size = L1->size + L2->size;
     L->head = l1->head;
     L->tail = l2->tail;
