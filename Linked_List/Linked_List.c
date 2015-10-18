@@ -7,7 +7,7 @@
 /* 
  Author: Ryan Rozanski
  Created: 9/6/15
- Last Edited: 10/11/15
+ Last Edited: 10/13/15
  
  A linked ls library for use with arbitrary data structures
 */
@@ -30,7 +30,8 @@ typedef struct ls_node {
 } ls_node;
 
 typedef struct List {
-  int (*comparator)(void *data1, void *data2);
+  //must return -1 (d1 < d2), 0 (d1 == d2), 1 (d1 > d2)
+  int (*comparator)(void *data1, void *data2); 
   void(*printer)(void *data);
   ls_node *head;
   ls_node *tail;
@@ -73,14 +74,22 @@ List *make_ls(void (*printer)(void *data), int (*comparator)(void *data1, void *
   return L;
 }
 
+//need to fix so pointer to the next node are freed w/o mem map error
 void delete_ls(List *L) {
   ls_node *current = L->head;
+  ls_node *next;
   while(current != NULL) {
-    ls_node *next = current->next;
+    next = current->next;
+    free(current->data);
+    //need to free current->next 
     free(current);
     current = next;
   }
-  free(L);
+  free(L->head);
+  L->head = NULL;
+  free(L->tail);
+  L->tail = NULL;
+  L->size = 0;
 }
 
 List *ls_insert_beginning(List *L, void *item) {
@@ -123,6 +132,7 @@ List *ls_insert_end(List *L, void *item) {
   return L;
 }
 
+//should remove all?
 List *ls_remove(List *L, void *item) {
   ls_node *current = L->head;
   ls_node *prev = NULL;
@@ -162,7 +172,7 @@ int ls_length(List *L) {
 }
 
 int ls_empty(List *L) {
-  return L->size ? 0 : 1;
+  return L->size ? 0 : 1; //maybe return L->size since non-zero means not empty
 }
 
 void ls_print(List *L) {
@@ -184,8 +194,9 @@ List *ls_append(List *L1, List *L2) {
 List *ls_reverse(List *L) {
   ls_node *old_ls = L->head;
   ls_node *new_ls = NULL;
+  ls_node *head;
   while(old_ls != NULL) {
-    ls_node *head = old_ls;
+    head = old_ls;
     old_ls = old_ls->next;
     head->next = new_ls;
     new_ls = head;
@@ -195,20 +206,34 @@ List *ls_reverse(List *L) {
   return L;
 }
 
-// ...ikd if this is a good idea...
-ls_node *merge_sort(List *L, int start, int end) {
-}
-
+//assume lists with same type (theoritically have same printer and comparator)
 ls_node *merge(ls_node *L1, ls_node *L2) {
+  //these lists should only ever differ by no more than 1
+  ls_node *head;
+  while(L1 != NULL || L2 != NULL) {
+  
+  }
+  return head;
 }
 
-//merge sort --> maybe use quick sort. it is inplace although merge sort seems
-//better bc we will be jumping around memory instead of just being in an array
+ls_node *merge_sort(ls_node *L, int size) {
+  if(size<=1)
+    return L;
+  else {
+    ls_node *first_half = merge_sort(L, size/2); 
+    //iterate to get to second half? -->also size problem of odd or not
+    ls_node *second_half = merge_sort(L, size/2);
+    return merge(first_half, second_half);
+  }
+}
+
 List *ls_sort(List *L) {
-  int subls_size = L->size/2;
-  ls_node *L1 = merge_sort(L, 0, subls_size);
-  ls_node *L2 = merge_sort(L, subls_size+1, L->size);
-  L->head = merge(L1, L2);
+  ls_node *head = merge_sort(L->head, L->size-1);
+  L->head = head;
+  //can i do this better...if not this is HIGHLY unfortunate
+  while(head->next != NULL)
+    head = head->next;
+  L->tail = head;
   return L;
 }
 

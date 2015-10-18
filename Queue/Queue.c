@@ -43,8 +43,8 @@ typedef struct Queue {
 ***********************************************************************/
 Queue *make_queue(void (*printer)(void *data)); //make a new queue
 void delete_queue(Queue *Q);                    //delete a queue
-Queue *queue_enqueue(Queue *Q, void *data);             //add an item at the tail
-void *queue_dequeue(Queue *Q);                        //remove the item at the head and return it
+Queue *queue_enqueue(Queue *Q, void *data);     //add an item at the tail
+void *queue_dequeue(Queue *Q);                  //remove the item at the head and return it
 void *queue_peek(Queue *Q);                     //return the item at the head (without removing it)
 int queue_contains(Queue *Q, void *data);       //return the waiting position of data in the queue 
 int queue_size(Queue *Q);                       //return the number of items in the queue
@@ -102,6 +102,7 @@ void *queue_peek(Queue *Q) {
   return Q->head->data;
 }
 
+//cant do this void* comparison
 int queue_contains(Queue *Q, void *data) {
   int wait_pos = 0;
   q_node *current = Q->head;
