@@ -7,7 +7,7 @@
 /* 
  Author: Ryan Rozanski
  Created: 9/6/15
- Last Edited: 10/1/15
+ Last Edited: 10/18/15
  
  A general purpose queue library for arbitrary payloads
 */

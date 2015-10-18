@@ -7,7 +7,7 @@
 /*
  Author: Ryan Rozanski
  Created: 9/6/15
- Last Edited: 9/30/15
+ Last Edited: 10/18/15
  
  A library for general use of stacks for arbitrary data structures (payloads)
 */

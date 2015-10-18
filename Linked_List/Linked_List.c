@@ -61,7 +61,8 @@ List *ls_sort(List *L);
 ls_node *merge_sort(ls_node *head, int size, List *L); //should not be called by user
 ls_node *merge(ls_node *l, ls_node *s, List *L);       //should not be called by user
 void *ls_ref(List *L, int i);
-List *ls_set(List *L, int i, void *data);              //not sure what the correct behavior of this should be
+int ls_index(List *L, void *data);
+List *ls_set(List *L, int i, void *data);              //user must free old data if they are not using it elsewhere
 
 /**********************************************************************
 
@@ -306,6 +307,26 @@ void *ls_ref(List *L, int i) {
   ls_node *current = L->head;
   for(; j<i; j++) current = current->next;
   return current->data;
+}
+
+int ls_index(List *L, void *data) {
+  int i = 0;
+  int found = 0;
+  ls_node *current = L->head;
+  while(current != NULL) {
+    if(L->comparator(current->data, data) == 0) {
+      found = 1;
+      break;
+    }
+    else {
+      i += 1;
+      current = current->next;
+    }
+  }
+  if(found) 
+    return i;
+  else
+    return -1;
 }
 
 List *ls_set(List *L, int i, void *data) {
