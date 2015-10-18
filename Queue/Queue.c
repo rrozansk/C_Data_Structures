@@ -41,8 +41,8 @@ typedef struct Queue {
              		F U N C T I O N   P R O T O T Y P E S
 
 ***********************************************************************/
-Queue *make_queue(void (*printer)(void *data)); //make a new queue
-void free_queue(Queue *Q);                      //free a queue
+Queue *queue_make(void (*printer)(void *data)); //make a new queue
+void queue_free(Queue *Q);                      //free a queue
 void delete_queue(Queue *Q);                    //delete a queue (free's data)
 Queue *queue_copy(Queue *Q);                    //copy a queue
 Queue *queue_enqueue(Queue *Q, void *data);     //add an item at the tail
@@ -58,7 +58,7 @@ void queue_print(Queue *Q);                     //print out the queue
        		F U N C T I O N   I M P L E M E N T A T I O N S 
 
 ***********************************************************************/
-Queue *make_queue(void (*printer)(void *data)) {
+Queue *queue_make(void (*printer)(void *data)) {
   Queue *Q = malloc(sizeof(Queue));
   Q->printer = printer;
   Q->head = NULL;
@@ -67,7 +67,7 @@ Queue *make_queue(void (*printer)(void *data)) {
   return Q;
 }
 
-void free_queue(Queue *Q) {
+void queue_free(Queue *Q) {
   q_node *current = Q->head;
   q_node *prev = Q->head;
   while(current != NULL) {

@@ -40,9 +40,9 @@ typedef struct Stack {
              		F U N C T I O N   P R O T O T Y P E S
 
 ***********************************************************************/
-Stack *make_stack(void(*printer)(void *data)); //make me a stack
-void free_stack(Stack *S);                     //free the stack
-void delete_stack(Stack *S);                   //delete the stack (free's data)
+Stack *stack_make(void(*printer)(void *data)); //make me a stack
+void stack_free(Stack *S);                     //free the stack
+void stack_delete(Stack *S);                   //delete the stack (free's data)
 Stack *stack_copy(Stack *S);                   //copy the stack
 Stack *stack_push(Stack *S, void *item);       //add an item to the top
 void *stack_pop(Stack *S);                     //return the Frame at the top of the stack and side effect the stack
@@ -57,7 +57,7 @@ void stack_print(Stack *S);                    //print out the stack
        		F U N C T I O N   I M P L E M E N T A T I O N S 
 
 ***********************************************************************/
-Stack *make_stack(void(*printer)(void *data)) {
+Stack *stack_make(void(*printer)(void *data)) {
   Stack *S = malloc(sizeof(Stack));
   S->printer = printer;
   S->top = NULL;
@@ -65,7 +65,7 @@ Stack *make_stack(void(*printer)(void *data)) {
   return S;
 }
 
-void free_stack(Stack *S) {
+void stack_free(Stack *S) {
   Frame *current = S->top;
   Frame *prev = S->top;
   while(current != NULL) {
@@ -78,7 +78,7 @@ void free_stack(Stack *S) {
   S->size = 0;
 }
 
-void delete_stack(Stack *S) {
+void stack_delete(Stack *S) {
   Frame *current = S->top;
   Frame *prev = S->top;
   while(current != NULL) {

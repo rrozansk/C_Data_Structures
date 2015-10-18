@@ -43,14 +43,14 @@ typedef struct List {
              		F U N C T I O N   P R O T O T Y P E S
 
 ***********************************************************************/
-List *make_ls(void (*printer)(void *data), int (*comparator)(void *data1, void *data2));
-void free_ls(List *L);
-void delete_ls(List *L);
+List *ls_make(void (*printer)(void *data), int (*comparator)(void *data1, void *data2));
+void ls_free(List *L);
+void ls_delete(List *L);
 List *ls_copy(List *L);
 List *ls_insert_beginning(List *L, void *item);
 List *ls_insert_after(List *L, void *ls_item, void *new_item);
 List *ls_insert_end(List *L, void *item);
-List *ls_remove(List *L, void *item);                   //should i remove all occurences?
+List *ls_remove(List *L, void *item);                   //remove all/just 1st?
 int ls_contains(List *L, void *item);
 int ls_length(List *L);
 int ls_empty(List *L);
@@ -69,7 +69,7 @@ List *ls_set(List *L, int i, void *data);              //user must free old data
        		F U N C T I O N   I M P L E M E N T A T I O N S 
 
 ***********************************************************************/
-List *make_ls(void (*printer)(void *data), int (*comparator)(void *data1, void *data2)) {
+List *ls_make(void (*printer)(void *data), int (*comparator)(void *data1, void *data2)) {
   List *L = malloc(sizeof(List));
   L->comparator = comparator;
   L->printer = printer;
@@ -79,7 +79,7 @@ List *make_ls(void (*printer)(void *data), int (*comparator)(void *data1, void *
   return L;
 }
 
-void free_ls(List *L) {
+void ls_free(List *L) {
   ls_node *current = L->head;
   ls_node *prev = L->head;
   while(current != NULL) {
@@ -90,7 +90,7 @@ void free_ls(List *L) {
   free(L);
 }
 
-void delete_ls(List *L) {
+void ls_delete(List *L) {
   ls_node *current = L->head;
   ls_node *prev = L->head;
   while(current != NULL) {
