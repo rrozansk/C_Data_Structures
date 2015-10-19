@@ -34,7 +34,7 @@ int comparator(void *data1, void *data2) {
 
 int main() {
 
-  List *ls = make_ls(printer, comparator);
+  List *ls = ls_make(printer, comparator);
   S_t *val1 = malloc(sizeof(S_t));
   val1->num = 5;
   
@@ -63,7 +63,7 @@ int main() {
   ls_print(ls);
   List *A = ls_append(ls, ls);
   List *C = ls_copy(A);
-  free_ls(A);
+  ls_free(A);
   ls_sort(C);
   printf("sorted C\n");
   ls_print(C);
@@ -83,7 +83,7 @@ int main() {
   printf("car: %d\n", *(int *)car(ls));
 
   //clean up
-  delete_ls(ls);
+  ls_delete(ls);
   free(ls);
   ls = NULL;
 

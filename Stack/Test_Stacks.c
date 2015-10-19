@@ -8,7 +8,7 @@ void print(void *data) {
 
 int main() {
 
-  Stack *my_stack = make_stack(print);
+  Stack *my_stack = stack_make(print);
   printf("stack size: %d\n", stack_size(my_stack));
   stack_print(my_stack);
 

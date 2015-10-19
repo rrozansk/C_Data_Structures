@@ -47,8 +47,10 @@ typedef struct Tree {
              		F U N C T I O N   P R O T O T Y P E S
 
 ***********************************************************************/
-Tree *make_tr(int (*comparator)(void *key1, void* key2), void (*printer)(void *key));
-void delete_tr(Tree *T);                //delete of each node of the tree
+Tree *tr_make(int (*comparator)(void *key1, void* key2), void (*printer)(void *key));
+void tr_free(Tree *T);
+void tr_delete(Tree *T);                //delete of each node of the tree
+Tree *tr_copy(Tree *T);
 void tr_insert(Tree *T, void *key);     //insert a key into a new node into the tree
 void tr_delete(Tree *T, void *key);     //delete the node of the tree which contains key
 tr_node *tr_lookup(Tree *T, void *key); //return the node with given key from the tree
@@ -68,7 +70,7 @@ void tr_walk_post(Tree *T);
        		F U N C T I O N   I M P L E M E N T A T I O N T 
 
 ***********************************************************************/
-Tree *make_tr(int (*comparator)(void *key1, void *key2), void (*printer)(void *key)) {
+Tree *tr_make(int (*comparator)(void *key1, void *key2), void (*printer)(void *key)) {
   Tree *T = malloc(sizeof(Tree));
   T->comparator = comparator;
   T->printer = printer;
@@ -78,13 +80,10 @@ Tree *make_tr(int (*comparator)(void *key1, void *key2), void (*printer)(void *k
   return T;
 }
 
-void delete_tr(Tree *T) {
+void tr_delete(Tree *T) {
 }
 
 void tr_insert(Tree *T, void *key) {
-}
-
-void tr_delete(Tree *T, void *key) {
 }
 
 tr_node *tr_lookup(Tree *T, void *key) {
@@ -126,7 +125,7 @@ void tr_print(Tree *T, int walk) {
 }
 
 void tr_walk_pre(Tree *T) {
-  Queue *Q = make_queue(T->printer);
+  Queue *Q = make_queue(T->printer); //dont call this func, just malloc and set ptrs
   if(T->size) {
     queue_enqueue(Q, T->root);
     while(!queue_empty) {

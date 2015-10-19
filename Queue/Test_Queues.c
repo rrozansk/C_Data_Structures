@@ -8,7 +8,7 @@ void printer(void *data) {
 
 int main() {
 
-  Queue *my_queue = make_queue(printer);
+  Queue *my_queue = queue_make(printer);
   printf("queue size: %d\n", queue_size(my_queue));
   queue_print(my_queue);
 
