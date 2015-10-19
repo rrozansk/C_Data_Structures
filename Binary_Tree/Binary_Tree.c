@@ -39,7 +39,6 @@ typedef struct Tree {
   void (*printer)(void *key);
   tr_node *root;
   int size;
-  int height;
 } Tree;
 
 /**********************************************************************
@@ -48,11 +47,12 @@ typedef struct Tree {
 
 ***********************************************************************/
 Tree *tr_make(int (*comparator)(void *key1, void* key2), void (*printer)(void *key));
-void tr_free(Tree *T);
-void tr_delete(Tree *T);                //delete of each node of the tree
-Tree *tr_copy(Tree *T);
+void tr_free(Tree *T);                  //free the tree
+void tr_delete(Tree *T);                //delete of each node of the tree (free's data)
+Tree *tr_copy(Tree *T);                 //copy the tree
 void tr_insert(Tree *T, void *key);     //insert a key into a new node into the tree
-void tr_delete(Tree *T, void *key);     //delete the node of the tree which contains key
+void tr_node_free(Tree *T, void *key);  //free the node of the tree which contains key
+void tr_node_delete(Tree *T, void *key);//delete the node of the tree which contains key (free's data)
 tr_node *tr_lookup(Tree *T, void *key); //return the node with given key from the tree
 tr_node *tr_succ(tr_node *N);           //the next decendant of a node
 tr_node *tr_pred(tr_node *N);           //the next ancestor of a node
@@ -76,14 +76,28 @@ Tree *tr_make(int (*comparator)(void *key1, void *key2), void (*printer)(void *k
   T->printer = printer;
   T->root = NULL;
   T->size = 0;
-  T->height = 0;
   return T;
 }
 
+void tr_free(Tree *T) {
+
+}
 void tr_delete(Tree *T) {
 }
 
+Tree *tr_copy(Tree *T) {
+
+}
+
 void tr_insert(Tree *T, void *key) {
+}
+
+void tr_node_free(Tree *T, void *key) {
+
+}
+
+void tr_node_delete(Tree *T, void *key) {
+
 }
 
 tr_node *tr_lookup(Tree *T, void *key) {
@@ -99,7 +113,7 @@ int tr_contains(Tree *T, void *key) {
 }
 
 int tr_height(Tree *T) {
-  return T->height;
+  return 0;
 }
 
 int tr_size(Tree *T) {
@@ -125,7 +139,7 @@ void tr_print(Tree *T, int walk) {
 }
 
 void tr_walk_pre(Tree *T) {
-  Queue *Q = make_queue(T->printer); //dont call this func, just malloc and set ptrs
+  Queue *Q = queue_make(T->printer); //dont call this func, just malloc and set ptrs
   if(T->size) {
     queue_enqueue(Q, T->root);
     while(!queue_empty) {
@@ -135,11 +149,11 @@ void tr_walk_pre(Tree *T) {
       T->printer(tr_root);
     }
   }
-  delete_queue(Q);
+  queue_free(Q);
 }
 
 void tr_walk_in(Tree *T) {
-  Queue *Q = make_queue(T->printer);
+  Queue *Q = queue_make(T->printer);
   if(T->size) {
     if(T->root->l != NULL) queue_enqueue(Q, T->root->l);
     while(!queue_empty) {
@@ -149,11 +163,11 @@ void tr_walk_in(Tree *T) {
       T->printer(tr_root);
     }
   }
-  delete_queue(Q);
+  queue_free(Q);
 }
 
 void tr_walk_post(Tree *T) {
-  Queue *Q = make_queue(T->printer);
+  Queue *Q = queue_make(T->printer);
   if(T->size) {
     queue_enqueue(Q, T->root);
     while(!queue_empty) {
@@ -163,5 +177,5 @@ void tr_walk_post(Tree *T) {
       T->printer(tr_root);
     }
   }
-  delete_queue(Q);
+  queue_free(Q);
 }
