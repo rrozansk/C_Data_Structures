@@ -20,6 +20,7 @@
 
 ***********************************************************************/
 #include <stdlib.h>
+#include <stdio.h>
 #include "../Queue/Queue.c"
 
 /**********************************************************************
@@ -65,7 +66,7 @@ void tr_print(Tree *T, int walk);                           //print out the tree
 void tr_walk_pre(Tree *T, void (visitor)(void *key));       //3 different version of depth first search
 void tr_walk_in(Tree *T, void (visitor)(void *key));
 void tr_walk_post(Tree *T, void (visitor)(void *key));
-void tr_breadth_first(Tree *T, void (visitor)(void *key));  //breadth first search of tree
+void tr_breadth_first(Tree *T, void (visitor)(tr_node *key));  //breadth first search of tree
 Tree *tr_map(Tree *T, void (*func)(void *key));             //return a new tree 
 
 /**********************************************************************
@@ -93,6 +94,37 @@ Tree *tr_copy(Tree *T) {
 }
 
 Tree *tr_insert(Tree *T, void *key) {
+  T->size += 1;
+  tr_node *new_node = malloc(sizeof(tr_node));
+  new_node->left = NULL;
+  new_node->right = NULL;
+  new_node->parent = NULL;
+  new_node->key = key;
+  if (T->root == NULL)
+    T->root = new_node;
+  else {
+    tr_node *parent = NULL;
+    tr_node *current = T->root;
+    int comp;
+    while(current != NULL) {
+      comp = T->comparator(key, current->key); 
+      if (comp == -1) {
+        parent = current;
+        current = current->left;
+      }
+      else if (comp == 0) {
+        return T; //no duplicates allowed
+      }
+      else { // (comp == 1) 
+        parent = current;
+        current = current->right;
+      }
+    }
+    if(comp == -1) parent->left = new_node;
+    else parent->right = new_node;
+    new_node->parent = parent;
+  }
+  return T;
 }
 
 Tree *tr_node_free(Tree *T, void *key) {
@@ -286,7 +318,7 @@ void tr_walk_in(Tree *T, void(visitor)(void *key)) {
 void tr_walk_post(Tree *T, void(visitor)(void *key)) {
 }
 
-void tr_breadth_first(Tree *T, void (visitor)(void *key)) {
+void tr_breadth_first(Tree *T, void (visitor)(tr_node *key)) {
   if(T->size) {
     Queue *Q = queue_make(T->printer);
     queue_enqueue(Q, T->root);

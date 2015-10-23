@@ -8,12 +8,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct S {
-  int num;
-} S_t;
-
 void printer(void *data) {
-  printf("%d\n", ((S_t *)data)->num);
+  printf("%d\n", *(int *)data);
 }
 
 int comparator(void *data1, void *data2) {
@@ -24,55 +20,45 @@ int comparator(void *data1, void *data2) {
   if (d1 > d2) return 1;
 }
 
+void visitor(tr_node *node) {
+  printf("%d\n", *(int *)node->key);
+  //printf("parent->%d\t\tme: %d\n", *(int *)node->parent, *(int *)node->key);
+}
+
 int main() {
 
   Tree *T = tr_make(comparator, printer);
 
-  S_t *v1 = malloc(sizeof(S_t));
-  v1->num = 1;
-  S_t *v2 = malloc(sizeof(S_t));
-  v2->num = 2;
-  S_t *v3 = malloc(sizeof(S_t));
-  v3->num = 3;
-  S_t *v4 = malloc(sizeof(S_t));
-  v4->num = 4;
-  S_t *v5 = malloc(sizeof(S_t));
-  v5->num = 5;
-  S_t *v6 = malloc(sizeof(S_t));
-  v6->num = 6;
-  S_t *v7 = malloc(sizeof(S_t));
-  v7->num = 7;
-  S_t *v8 = malloc(sizeof(S_t));
-  v8->num = 8;
+  int a = 4;
+  int b = 2;
+  int c = 6;
+  int d = 1;
+  int e = 3;
+  int f = 5;
+  int g = 7;
+  int h = 8;
 
-  T->root = (void *)v4;
-  T->root->left = (void *)v2;
-  T->root->right = (void *)v6;
-  T->root->left->left = (void *)v1;
-  T->root->left->right = (void *)v3;
-  T->root->right->left = (void *)v5;
-  T->root->right->right = (void *)v7;
+  tr_insert(
+      tr_insert(
+        tr_insert(
+          tr_insert(
+            tr_insert(
+              tr_insert(
+                tr_insert(
+                  tr_insert(T, &e), 
+                  &c), 
+                &d), 
+              &f), 
+            &a), 
+          &h), 
+        &g),
+      &b);
 
-  T->root->parent = NULL;
-  T->root->left->parent = T->root;
-  T->root->right->parent = T->root;
-  T->root->left->left->parent = T->root->left;
-  T->root->left->right->parent = T->root->left;
-  T->root->right->left->parent = T->root->right;
-  T->root->right->right->parent = T->root->right;
-
-  printf("trying to print tree manually\n");
-  T->printer(T->root);
-  T->printer(T->root->left);
-  T->printer(T->root->left->left);
-  T->printer(T->root->left->right);
-  T->printer(T->root->right);
-  T->printer(T->root->right->left);
-  T->printer(T->root->right->right);
-
+  printf("pre-order walk of tree with visitor being the printer\n");
+  tr_walk_pre(T, T->printer);
+  printf("breath first search of tree with visitor being the printer\n");
   T->size = 7;
-//  tr_walk_pre(T, T->printer);
-  tr_breadth_first(T, T->printer);
+  tr_breadth_first(T, visitor);
 
   return 0;
 }
