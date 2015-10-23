@@ -10,6 +10,11 @@
  Last Edited: 10/18/15
  
  A general purpose queue library for arbitrary payloads
+
+
+  MIGHT REQRITE THIS FILE TO BE IN TERMS OF LINKED LISTS,
+  THEY LOOK ALMOST EXACTLY THE SAME
+
 */
 
 /**********************************************************************
@@ -139,6 +144,7 @@ Queue *queue_enqueue(Queue *Q, void *data) {
   return Q;
 }
 
+//need to take care of head/tail pointers
 void *queue_dequeue(Queue *Q) {
   q_node *N = Q->head;
   Q->head = N->next;

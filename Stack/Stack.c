@@ -97,7 +97,7 @@ Stack *stack_copy(Stack *S) {
   new_stk->printer = S->printer;
   new_stk->size = S->size;
   if(S->size == 0) {
-    S->top = NULL;
+    new_stk->top = NULL;
   }
   else {
     Frame *new_top = malloc(sizeof(Frame));
@@ -136,6 +136,9 @@ void *stack_peek(Stack *S) {
   return S->top->data;
 }
 
+
+//will need comparator to do this correctly
+//1 if == 0 if not
 int stack_contains(Stack *S, void *data) {
   int wait_pos = 0;
   Frame *current = S->top;
