@@ -136,7 +136,7 @@ Tree *tr_node_delete(Tree *T, void *key) {
 void *tr_maximum(tr_node *N) {
   if(N != NULL) {
     tr_node *current = N;
-    while(current->right != NULL) {
+    while(current != NULL) {
       N = current;
       current = current->right;
     }
@@ -148,7 +148,7 @@ void *tr_maximum(tr_node *N) {
 void *tr_minimum(tr_node *N) {
   if(N != NULL) {
     tr_node *current = N;
-    while(current->left != NULL) {
+    while(current != NULL) {
       N = current; 
       current = current->left;
     }
@@ -285,12 +285,8 @@ void tr_walk_pre(Tree *T, void(visitor)(void *key)) {
       while (current->right && current->right != root)
         current = current->right;
       if (current->right == root) { 
-        current->right
-          =
-          NULL;
-        root
-          =
-          root->right;
+        current->right = NULL;
+        root = root->right;
       } 
       else {
         visitor(root->key);

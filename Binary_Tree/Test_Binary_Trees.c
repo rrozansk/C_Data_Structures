@@ -59,7 +59,9 @@ int main() {
   printf("breath first search of tree with visitor being the printer\n");
   T->size = 7;
   tr_breadth_first(T, visitor);
-
+  printf("tr max -> %d\n", *(int *)tr_maximum(T->root));
+  printf("tr min -> %d\n", *(int *)tr_minimum(T->root));
+  printf("tr height -> %d\n", tr_height(T));
   return 0;
 }
 
