@@ -7,7 +7,7 @@
 /* 
  Author: Ryan Rozanski
  Created: 9/7/15
- Last Edited: 9/29/15
+ Last Edited: 10/27/15
  
  Just a simple binary tree library on which to build other tree data 
  structures with similiar properties including AVL, red black, and BST's
@@ -20,7 +20,17 @@
 
 ***********************************************************************/
 #include <stdlib.h>
+#include <string.h>
 #include "../Queue/Queue.c"
+
+/**********************************************************************
+
+                 	    		M A C R O S
+
+***********************************************************************/
+#define PREORDER -1
+#define INORDER 0
+#define POSTORDER 1
 
 /**********************************************************************
 
@@ -47,21 +57,20 @@ typedef struct Tree {
 
 ***********************************************************************/
 Tree *tr_make(int (*comparator)(void *key1, void* key2), void (*printer)(void *key));
-void tr_free(Tree *T);                                      //free the tree
-//Tree *tr_copy(Tree *T);                                     //copy the tree
+void tr_free(Tree *T, int free_keys);                         //free the tree, and optionally the keys
+Tree *tr_copy(Tree *T, int key_size);                         //copy the tree
 Tree *tr_insert(Tree *T, void *key);                          //insert a key into a new node into the tree
 tr_node *tr_node_make(void *key);
 //Tree *tr_node_free(Tree *T, void *key);                     //free the node of the tree which contains key
-//Tree *tr_node_delete(Tree *T, void *key);                   //delete the node of the tree which contains key (free's data)
 void *tr_maximum(tr_node *N);                                 //return the biggest element in the tree
 void *tr_minimum(tr_node *N);                                 //return the smallest element in the tree
 tr_node *tr_search(Tree *T, void *key);                       //return the node with given key from the tree
 //tr_node *tr_succ(tr_node *N);                               //the next decendant of a node
 //tr_node *tr_pred(tr_node *N);                               //the next ancestor of a node
-int tr_height(tr_node *node);                                       //find the height
+int tr_height(tr_node *node);                                 //find the height
 int tr_is_empty(Tree *T);                                     //return whether the tree is empty
 Tree *tr_walk(Tree *T, int walk, void (visitor)(void *key));  //3 different version of depth first search -> here visitor can also mutate val@key
-Tree *tr_map(Tree *T, int walk, void (*make_key)(void *key)); //return a new tree 
+//Tree *tr_map(Tree *T, int walk, void (*make_key)(void *key)); //return a new tree 
 void tr_breadth_first(Tree *T, void (visitor)(tr_node *key)); //breadth first search of tree
 
 /**********************************************************************
@@ -78,29 +87,33 @@ Tree *tr_make(int (*comparator)(void *key1, void *key2), void (*printer)(void *k
   return T;
 }
 
-void tr_free(Tree *T) {
+void tr_free(Tree *T, int free_keys) {
   tr_node *current = T->root;
   int state_flag = -1;
   T->size = 0;
   while(current) {
     switch(state_flag) {
-      case -1: //go left
+      case -1: //go left 
         if(current->left) { current = current->left; }
         else { state_flag = 1; }
         break;
       case 0: //visit
-        if(current->parent == NULL) { 
+        if(current->parent == NULL) {
+          if(free_keys) { free(current->key); }
           free(current);
           current = NULL;
+          T->root = NULL;
         }
-        else if(current->parent->left == current) { 
+        else if(current->parent->right == current) { 
           current = current->parent; 
+          if(free_keys) { free(current->right->key); }
+          free(current->right);
+        }
+        else  { //(current->parent->left == current) 
+          current = current->parent; 
+          if(free_keys) { free(current->left->key); }
           free(current->left);
           state_flag = 1;
-        }
-        else  { //(current->parent->right == current) 
-          current = current->parent; 
-          free(current->right);
         } 
         break;
       default: //case 1:  //go right
@@ -112,7 +125,41 @@ void tr_free(Tree *T) {
         break;
     }
   }
-  T->root = NULL;
+}
+
+Tree *tr_copy(Tree *T, int key_size) { //key size is in bytes
+  Tree *T_copy = tr_make(T->comparator, T->printer);
+  T_copy->size = T->size;
+  tr_node *current = T->root;
+  tr_node *new_node_left, *new_node_right;
+  void *new_key;
+  int state_flag = -1;
+  while(current) {
+    switch(state_flag) {
+      case -1: //go left
+        if(current->left) { current = current->left; }
+        else { state_flag = 1; }
+        break;
+      case 0: //visit
+        if(current->parent == NULL || current->parent->right == current) { current = current->parent; }
+        else { //(current->parent->left == current)
+          new_node_left = malloc(key_size);
+          memcpy(new_key, current->key, key_size);
+          new_node_left = tr_node_make(new_key);
+          current = current->parent; 
+          state_flag = 1;
+        }
+        break;
+      default: //case 1:  //go right
+        if(current->right) { 
+          current = current->right;
+          state_flag = -1; 
+        }
+        else { state_flag = 0; }
+        break;
+    }
+  }
+  return T_copy;
 }
 
 Tree *tr_insert(Tree *T, void *key) {
@@ -155,26 +202,6 @@ tr_node *tr_node_make(void *key) {
 }
 
 Tree *tr_node_free(Tree *T, void *key) {
-}
-
-//not done
-Tree *tr_node_delete(Tree *T, void *key) {
-  tr_node *found = tr_search(T, key);
-  if(found) { //found the key
-    T->size--;
-    if(!found->parent) { //i am root
-      if (found->right) T->root = found->right; //have right child
-      else if(found->left) T->root = found->left; //have left child
-      else T->root = NULL; //
-      T->root = found->right;
-      found->right = NULL;
-      free(found);
-    }
-    else {
-      
-    }
-  }
-  return T;
 }
 
 void *tr_maximum(tr_node *N) {
@@ -246,21 +273,20 @@ Tree *tr_walk(Tree *T, int walk, void(visitor)(void *key)) {
   while(current) {
     switch(state_flag) {
       case -1: //go left
-        if(walk == -1) visitor(current->key);
+        if(walk == PREORDER) visitor(current->key);
         if(current->left) { current = current->left; }
         else { state_flag = 1; }
         break;
       case 0: //visit
-        if(walk == 1) visitor(current->key);
-        if(current->parent == NULL) { current = current->parent; }
-        else if(current->parent->left == current) { 
+        if(walk == POSTORDER) visitor(current->key);
+        if(current->parent == NULL || current->parent->right == current) { current = current->parent; }
+        else { //(current->parent->left == current)
           current = current->parent; 
           state_flag = 1;
         }
-        else  { current = current->parent; } //(current->parent->right == current)
         break;
       default: //case 1:  //go right
-        if(walk == 0) visitor(current->key);
+        if(walk == INORDER) visitor(current->key);
         if(current->right) { 
           current = current->right;
           state_flag = -1; 
