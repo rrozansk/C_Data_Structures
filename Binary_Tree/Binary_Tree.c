@@ -48,7 +48,6 @@ typedef struct Tree {
 ***********************************************************************/
 Tree *tr_make(int (*comparator)(void *key1, void* key2), void (*printer)(void *key));
 void tr_free(Tree *T);                                      //free the tree
-void tr_delete(Tree *T);                                    //delete of each node of the tree (free's data)
 //Tree *tr_copy(Tree *T);                                     //copy the tree
 Tree *tr_insert(Tree *T, void *key);                          //insert a key into a new node into the tree
 tr_node *tr_node_make(void *key);
@@ -114,48 +113,6 @@ void tr_free(Tree *T) {
     }
   }
   T->root = NULL;
-}
-
-void tr_delete(Tree *T) {
-  tr_node *current = T->root;
-  int state_flag = -1;
-  T->size = 0;
-  while(current) {
-    switch(state_flag) {
-      case -1: //go left
-        if(current->left) { current = current->left; }
-        else { state_flag = 1; }
-        break;
-      case 0: //visit
-        if(current->parent == NULL) { 
-          free(current->key);
-          free(current);
-          current = NULL;
-        }
-        else if(current->parent->left == current) { 
-          current = current->parent; 
-          free(current->left->key);
-          free(current->left);
-          state_flag = 1;
-        }
-        else  { //(current->parent->right == current) 
-          current = current->parent; 
-          free(current->right->key);
-          free(current->right);
-        } 
-        break;
-      default: //case 1:  //go right
-        if(current->right) { 
-          current = current->right;
-          state_flag = -1; 
-        }
-        else { state_flag = 0; }
-        break;
-    }
-  }
-  T->root = NULL;}
-
-Tree *tr_copy(Tree *T) {
 }
 
 Tree *tr_insert(Tree *T, void *key) {
