@@ -93,8 +93,11 @@ int main() {
   tr_walk(T, 0, T->printer);
   printf("tr max -> %d\n", *(int *)tr_maximum(T->root));
   printf("tr min -> %d\n", *(int *)tr_minimum(T->root));
-  printf("tr height -> %d\n", tr_height(T));
+  printf("tr height -> %d\n", tr_height(T->root));
   printf("tr empty? -> %d\n", tr_is_empty(T));
+  printf("attempting to free tr\n");
+  tr_free(T);
+  printf("attempt succesful\n");
   return 0;
 }
 
