@@ -22,21 +22,33 @@ int comparator(void *data1, void *data2) {
 
 void visitor(tr_node *node) {
   printf("%d\n", *(int *)node->key);
-  //printf("parent->%d\t\tme: %d\n", *(int *)node->parent, *(int *)node->key);
+}
+
+void make_key(void *key) {
+  int key_val = *(int *)key;
+  key_val++;
+  *(int *)key = key_val;
 }
 
 int main() {
 
   Tree *T = tr_make(comparator, printer);
 
-  int a = 4;
+  int a = 1;
   int b = 2;
-  int c = 6;
-  int d = 1;
-  int e = 3;
-  int f = 5;
+  int c = 3;
+  int d = 4;
+  int e = 5;
+  int f = 6;
   int g = 7;
   int h = 8;
+  int i = 9;
+  int j = 10;
+  int k = 11;
+  int l = 12;
+  int m = 13;
+  int n = 14;
+  int o = 15;
 
   tr_insert(
       tr_insert(
@@ -45,23 +57,44 @@ int main() {
             tr_insert(
               tr_insert(
                 tr_insert(
-                  tr_insert(T, &e), 
-                  &c), 
-                &d), 
-              &f), 
-            &a), 
-          &h), 
-        &g),
-      &b);
+                  tr_insert(
+                    tr_insert(
+                      tr_insert(
+                        tr_insert(
+                          tr_insert(
+                            tr_insert(
+                              tr_insert(
+                                tr_insert(T, &h),
+                                &d),
+                              &l),
+                            &b),
+                          &a),
+                        &c),
+                      &e),
+                    &f),
+                  &g),
+                &k),
+              &j),
+            &i),
+          &n),
+        &m),
+      &o);
 
-  printf("pre-order walk of tree with visitor being the printer\n");
-  tr_walk_pre(T, T->printer);
   printf("breath first search of tree with visitor being the printer\n");
-  T->size = 7;
   tr_breadth_first(T, visitor);
+  printf("pre-order walk of tree with visitor being the printer\n");
+  tr_walk(T, -1, T->printer);
+  printf("in-order walk of tree with visitor being the printer\n");
+  tr_walk(T, 0, T->printer);
+  printf("post-order walk of tree with visitor being the printer\n");
+  tr_walk(T, 1, T->printer);
+  printf("doing a tree walk to mutate keys\n");
+  tr_walk(T, 0, make_key);
+  tr_walk(T, 0, T->printer);
   printf("tr max -> %d\n", *(int *)tr_maximum(T->root));
   printf("tr min -> %d\n", *(int *)tr_minimum(T->root));
   printf("tr height -> %d\n", tr_height(T));
+  printf("tr empty? -> %d\n", tr_is_empty(T));
   return 0;
 }
 
