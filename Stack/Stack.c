@@ -21,6 +21,15 @@
 
 /**********************************************************************
 
+                  	    	 M A C R O S	
+
+***********************************************************************/
+#define stack_size(S) S->size
+#define stack_null(S) !S->size
+#define stack_peek(S) S->top->data
+
+/**********************************************************************
+
                   	    		S T A C K S
 
 ***********************************************************************/
@@ -46,10 +55,7 @@ void stack_delete(Stack *S);                   //delete the stack (free's data)
 Stack *stack_copy(Stack *S);                   //copy the stack
 Stack *stack_push(Stack *S, void *item);       //add an item to the top
 void *stack_pop(Stack *S);                     //return the Frame at the top of the stack and side effect the stack
-void *stack_peek(Stack *S);                    //return the Frame at the top (without removing it)
 int stack_contains(Stack *S, void *data);      //returns whether the stack contains the data
-int stack_size(Stack *S);                      //return the number of Frames in the stack
-int stack_empty(Stack *S);                     //is the stack empty?
 void stack_print(Stack *S);                    //print out the stack
 
 /**********************************************************************
@@ -78,6 +84,7 @@ void stack_free(Stack *S) {
   S->size = 0;
 }
 
+//combine with free like in trees with int for del keys
 void stack_delete(Stack *S) {
   Frame *current = S->top;
   Frame *prev = S->top;
@@ -92,13 +99,12 @@ void stack_delete(Stack *S) {
   S->size = 0;
 }
 
+//chane this to map
 Stack *stack_copy(Stack *S) {
   Stack *new_stk = malloc(sizeof(Stack));
   new_stk->printer = S->printer;
   new_stk->size = S->size;
-  if(S->size == 0) {
-    new_stk->top = NULL;
-  }
+  if(S->size == 0) { new_stk->top = NULL; }
   else {
     Frame *new_top = malloc(sizeof(Frame));
     new_top->data = S->top->data;
@@ -121,21 +127,18 @@ Stack *stack_push(Stack *S, void *data) {
   F->data = data;
   F->next = S->top;
   S->top = F;
-  S->size = S->size++;
+  S->size++;
   return S;
 }
 
 void *stack_pop(Stack *S) {
-  void *data = S->top->data;
-  S->top = S->top->next;
-  S->size = S->size--;
+  Frame *current = S->top;
+  void *data = current->data;
+  S->top = current->next;
+  free(current);
+  S->size--;
   return data;
 }
-
-void *stack_peek(Stack *S) {
-  return S->top->data;
-}
-
 
 //will need comparator to do this correctly
 //1 if == 0 if not
@@ -143,19 +146,11 @@ int stack_contains(Stack *S, void *data) {
   int wait_pos = 0;
   Frame *current = S->top;
   while(current != NULL) {
-    wait_pos += 1;
-    if(current->data == data) break;
+    wait_pos++;
+    if(current->data == data) { break; }
     current = current->next;
   }
   return wait_pos;
-}
-
-int stack_size(Stack *S) {
-  return S->size;
-}
-
-int stack_empty(Stack *S) {
-  return S->size ? 0 : 1;
 }
 
 void stack_print(Stack *S) {

@@ -80,7 +80,7 @@ int main() {
   *n = 14;
   int *o = malloc(sizeof(int));
   *o = 15;
-/*
+
   tr_insert(
       tr_insert(
         tr_insert(
@@ -110,7 +110,7 @@ int main() {
           k),
         m),
       l);
-
+/*
   printf("breath first search of tree with visitor being the printer\n");
   tr_breadth_first(T, visitor);
   printf("pre-order walk of tree with visitor being the printer\n");
@@ -139,7 +139,7 @@ int main() {
   tr_free(T2, 1);
   printf("attempt's succesful\n");
 */
-  tr_insert(tr_insert(tr_insert(tr_insert(tr_insert(T, h), d), a), b), c);
+//  tr_insert(tr_insert(tr_insert(tr_insert(tr_insert(T, h), d), a), b), c);
   printf("pre-order walk of tree with visitor being the printer\n");
   tr_walk(T, PREORDER, printer);
   printf("in-order walk of tree with visitor being the printer\n");
@@ -153,6 +153,8 @@ int main() {
   tr_walk(T2, INORDER, printer);
   printf("post-order walk of map tree with visitor being the printer\n");
   tr_walk(T2, POSTORDER, printer);
-
+  printf("succ of 14: %d\n", *(int *)(tr_succ(T->root->right->right->right->left))->key);
+  printf("pred of 1: %d\n", (tr_pred(T->root->left->left)) == NULL);
+  
   return 0;
 }

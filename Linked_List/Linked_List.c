@@ -21,7 +21,7 @@
 
 /**********************************************************************
 
-                 	    		I N C L U D E S
+                 	    		M A C R O S
 
 ***********************************************************************/
 #define ls_null(L) !L->size
@@ -53,7 +53,7 @@ typedef struct List {
 ***********************************************************************/
 List *ls_make(void (*printer)(void *data), int (*comparator)(void *data1, void *data2));
 void ls_free(List *L, int free_data);
-List *ls_copy(List *L);
+List *ls_copy(List *L);                                           //REPLACE WITH MAP and get rid of printer in struct
 List *ls_insert_beginning(List *L, void *item);
 List *ls_insert_after(List *L, void *ls_item, void *new_item);
 List *ls_insert_end(List *L, void *item);
