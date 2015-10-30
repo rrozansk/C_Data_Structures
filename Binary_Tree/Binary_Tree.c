@@ -9,7 +9,8 @@
  Created: 9/7/15
  Last Edited: 10/29/15
  
- Just a simple binary tree library
+ A binary search tree library, with no recursion. everything is
+ implemented iteratively, using queues where necessary. 
 */
 
 /**********************************************************************
@@ -18,7 +19,6 @@
 
 ***********************************************************************/
 #include <stdlib.h>
-#include <string.h>
 #include "../Queue/Queue.c"
 
 /**********************************************************************
@@ -56,21 +56,19 @@ typedef struct Tree {
 
 ***********************************************************************/
 tr_node *tr_node_make(void *key);                             //make a tree node given a key
-Tree *tr_node_free(Tree *T, void *key, int free_key);         //free the node, and optionally its key
-Tree *tr_make(int (*comparator)(void *key1, void* key2));
+//Tree *tr_node_free(Tree *T, void *key, int free_key);         //free the node, and optionally its key, and fix up the tree
+Tree *tr_make(int (*comparator)(void *key1, void* key2));     //make a BST with given a comparator
 void tr_free(Tree *T, int free_keys);                         //free the tree, and optionally the keys
 Tree *tr_map(Tree *T, void *(*f)(void *key));                 //traverse the tree while making a new one
-
-void *tr_maximum(tr_node *N);                                 //return the biggest element in the tree
-void *tr_minimum(tr_node *N);                                 //return the smallest element in the tree
-tr_node *tr_search(Tree *T, void *key);                       //return the node with given key from the tree
-Tree *tr_insert(Tree *T, void *key);                          //insert a key into a new node into the tree
-//tr_node *tr_succ(tr_node *N);                               //
-//tr_node *tr_pred(tr_node *N);                               //
-int tr_height(tr_node *node);                                 //return the height of the tree
-
-Tree *tr_walk(Tree *T, int walk, void (*visitor)(void *key));  //depth first search -1(pre),0(in),1(post) -> here visitor can also mutate val@key
-void tr_breadth_first(Tree *T, void (*visitor)(tr_node *key)); //breadth first search of tree
+void *tr_maximum(Tree *T);                                    //return the biggest element in the tree
+void *tr_minimum(Tree *T);                                    //return the smallest element in the tree
+tr_node *tr_search(Tree *T, void *key);                       //return the key if found or NULL
+Tree *tr_insert(Tree *T, void *key);                          //insert a key into the tree, no duplicates allowed
+//tr_node *tr_succ(tr_node *current);                                 //
+//tr_node *tr_pred(tr_node *current);                                 //
+int tr_height(Tree *T);                                       //return the height of the tree
+Tree *tr_walk(Tree *T, int walk, void (*visitor)(void *key)); //depth first search pre,in,post -> here visitor can also mutate val@key
+void tr_breadth_first(Tree *T, void (*visitor)(tr_node *key));//breadth first search of tree
 
 /**********************************************************************
 
@@ -108,7 +106,7 @@ Tree *tr_make(int (*comparator)(void *key1, void *key2)) {
 
 void tr_free(Tree *T, int free_keys) {
   tr_node *current = T->root;
-  char state_flag = -1;
+  signed char state_flag = -1;
   tr_node *prev;
   while(current) {
     switch(state_flag) {
@@ -139,15 +137,15 @@ void tr_free(Tree *T, int free_keys) {
 Tree *tr_map(Tree *T, void *(*f)(void *key)) {
   Tree *T_copy = tr_make(T->comparator);
   tr_node *current = T->root;
-  tr_node *tmp, *parent = NULL;
-  char state_flag = -1;
+  tr_node *tmp, *parent = NULL; //parent will become our new tree, tmp is to make new nodes
+  signed char state_flag = -1;
   while(current) {
     switch(state_flag) {
       case -1: //go left
         tmp = tr_node_make(f(current->key)); //map over the node
         tmp->parent = parent;
         if(parent != NULL) {
-          if(parent->left == NULL) { parent->left = tmp; }
+          if(T->comparator(tmp->key, parent->key) == -1) { parent->left = tmp; }
           else { parent->right = tmp; }
         }
         parent = tmp;
@@ -175,12 +173,14 @@ Tree *tr_map(Tree *T, void *(*f)(void *key)) {
   return T_copy;
 }
 
-void *tr_maximum(tr_node *current) {
+void *tr_maximum(Tree *T) {
+  tr_node *current = T->root;
   while(current->right != NULL) { current = current->right; }
   return current->key;
 }
 
-void *tr_minimum(tr_node *current) {
+void *tr_minimum(Tree *T) {
+  tr_node *current = T->root;
   while(current->left != NULL) { current = current->left; }
   return current->key;
 }
@@ -226,19 +226,30 @@ tr_node *tr_succ(tr_node *N) {
 tr_node *tr_pred(tr_node *N) {
 }
 
-//rec def --> can i make this iterative without using another data structure?
-int tr_height(tr_node *node) {
-  if(node != NULL) {
-    int lh = tr_height(node->left);
-    int rh = tr_height(node->right);
-    return (rh >= lh) ? 1+rh : 1+lh;
+int tr_height(Tree *T) {
+  if(T->size) {
+    Queue *Q = queue_make(NULL);
+    queue_enqueue(Q, T->root);
+    tr_node *current;
+    int node_count, tr_height = 0;
+    while(1) {
+      node_count = Q->size;
+      if(node_count == 0) { return tr_height; }
+      else { tr_height++; }
+      while(node_count > 0) {
+        current = queue_dequeue(Q);
+        if(current->left != NULL) { queue_enqueue(Q, current->left); }
+        if(current->right != NULL) { queue_enqueue(Q, current->right); }
+        node_count--;
+      }
+    }
   }
   else { return 0; }
 }
 
-Tree *tr_walk(Tree *T, int walk, void(visitor)(void *key)) {
+Tree *tr_walk(Tree *T, int walk, void (*visitor)(void *key)) {
   tr_node *current = T->root;
-  char state_flag = -1;
+  signed char state_flag = -1;
   while(current != NULL) {
     switch(state_flag) {
       case -1: //go left
@@ -261,11 +272,12 @@ Tree *tr_walk(Tree *T, int walk, void(visitor)(void *key)) {
         break;
     }
   }
+  return T;
 }
 
-void tr_breadth_first(Tree *T, void (visitor)(tr_node *key)) {
+void tr_breadth_first(Tree *T, void (*visitor)(tr_node *key)) {
   if(T->size) {
-    Queue *Q = queue_make((void *)NULL); //this should be fine since i wont print it
+    Queue *Q = queue_make(NULL); //this should be fine since i wont print it
     queue_enqueue(Q, T->root);
     tr_node *current;
     while(!queue_empty(Q)) {
