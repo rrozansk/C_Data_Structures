@@ -34,9 +34,15 @@ void make_key(void *key) {
   *(int *)key = key_val;
 }
 
+void *make_key2(void *old_key) {
+  int *new_key = malloc(sizeof(int));
+  *new_key = *(int *)old_key + 10;
+  return new_key;
+}
+
 int main() {
 
-  Tree *T = tr_make(comparator, printer);
+  Tree *T = tr_make(comparator);
 
   int *a = malloc(sizeof(int));
   *a = 1;
@@ -84,41 +90,56 @@ int main() {
                             tr_insert(
                               tr_insert(
                                 tr_insert(T, h),
-                                d),
-                              l),
-                            b),
-                          a),
-                        c),
-                      e),
-                    f),
-                  g),
-                k),
-              j),
-            i),
-          n),
+                                b),
+                              a),
+                            g),
+                          e),
+                        f),
+                      d),
+                    c),
+                  i),
+                j),
+              o),
+            n),
+          k),
         m),
-      o);
-
+      l);
+  
   printf("breath first search of tree with visitor being the printer\n");
   tr_breadth_first(T, visitor);
   printf("pre-order walk of tree with visitor being the printer\n");
-  tr_walk(T, PREORDER, T->printer);
+  tr_walk(T, PREORDER, printer);
   printf("in-order walk of tree with visitor being the printer\n");
-  tr_walk(T, INORDER, T->printer);
+  tr_walk(T, INORDER, printer);
   printf("post-order walk of tree with visitor being the printer\n");
-  tr_walk(T, POSTORDER, T->printer);
+  tr_walk(T, POSTORDER, printer);
   printf("doing a tree walk to mutate keys\n");
   tr_walk(T, INORDER, make_key);
-  tr_walk(T, INORDER, T->printer);
+  tr_walk(T, INORDER, printer);
   printf("tr max -> %d\n", *(int *)tr_maximum(T->root));
   printf("tr min -> %d\n", *(int *)tr_minimum(T->root));
   printf("tr height -> %d\n", tr_height(T->root));
-  printf("tr empty? -> %d\n", tr_is_empty(T));
+  printf("tr null? -> %d\n", tr_null(T));
   printf("post-order walk of tree with visitor being the ptr_visitor\n");
   tr_walk(T, POSTORDER, ptr_visitor);
-  printf("attempting to free tr\n");
+/*
+  printf("testing node copier\n");
+  int *num = malloc(sizeof(int));
+  *num = 5;
+  tr_node *node = tr_node_make(num);
+  tr_node *copy = tr_node_copy(node, sizeof(int));
+  printf("node val: %d,\tcopy val: %d\n", *(int *)node->key, *(int *)copy->key);
+*/
+  printf("attempting tr map\n");
+  Tree *T2 = tr_map(T, make_key2);
+  printf("pre-order walk of map-ed tree with visitor being the printer\n");
+  tr_walk(T2, PREORDER, printer);
+  printf("pre-order walk of original tree with visitor being the printer\n");
+  tr_walk(T, PREORDER, printer);
+  printf("attempting to free tr's\n");
   tr_free(T, 1); //since we malloc all our data we can tell the tree to delete the keys aswell (1)
-  printf("attempt succesful\n");
+  tr_free(T2, 1);
+  printf("attempt's succesful\n");
   return 0;
 }
 

@@ -7,7 +7,7 @@
 /* 
  Author: Ryan Rozanski
  Created: 9/6/15
- Last Edited: 10/18/15
+ Last Edited: 10/27/15
  
  A linked ls library for use with arbitrary data structures
 */
@@ -18,6 +18,14 @@
 
 ***********************************************************************/
 #include <stdlib.h>
+
+/**********************************************************************
+
+                 	    		I N C L U D E S
+
+***********************************************************************/
+#define ls_null(L) !L->size
+#define ls_length(L) L->size
 
 /**********************************************************************
 
@@ -44,16 +52,13 @@ typedef struct List {
 
 ***********************************************************************/
 List *ls_make(void (*printer)(void *data), int (*comparator)(void *data1, void *data2));
-void ls_free(List *L);
-void ls_delete(List *L);
+void ls_free(List *L, int free_data);
 List *ls_copy(List *L);
 List *ls_insert_beginning(List *L, void *item);
 List *ls_insert_after(List *L, void *ls_item, void *new_item);
 List *ls_insert_end(List *L, void *item);
 List *ls_remove(List *L, void *item);                   //remove all/just 1st?
 int ls_contains(List *L, void *item);
-int ls_length(List *L);
-int ls_empty(List *L);
 void ls_print(List *L); 
 List *ls_append(List *L1, List *L2);
 List *ls_reverse(List *L);
@@ -63,6 +68,8 @@ ls_node *merge(ls_node *l, ls_node *s, List *L);       //should not be called by
 void *ls_ref(List *L, int i);
 int ls_index(List *L, void *data);
 List *ls_set(List *L, int i, void *data);              //user must free old data if they are not using it elsewhere
+
+//where is map!?
 
 /**********************************************************************
 
@@ -79,23 +86,12 @@ List *ls_make(void (*printer)(void *data), int (*comparator)(void *data1, void *
   return L;
 }
 
-void ls_free(List *L) {
+void ls_free(List *L, int free_data) {
   ls_node *current = L->head;
   ls_node *prev = L->head;
   while(current != NULL) {
     current = current->next;
-    free(prev);
-    prev = current;
-  }
-  free(L);
-}
-
-void ls_delete(List *L) {
-  ls_node *current = L->head;
-  ls_node *prev = L->head;
-  while(current != NULL) {
-    current = current->next;
-    free(prev->data);
+    if(free_data) { free(prev->data); }
     free(prev);
     prev = current;
   }
@@ -206,14 +202,6 @@ int ls_contains(List *L, void *item) {
     current = current->next;
   }
   return 0;
-}
-
-int ls_length(List *L) {
-  return L->size;
-}
-
-int ls_empty(List *L) {
-  return L->size ? 0 : 1; 
 }
 
 void ls_print(List *L) {
