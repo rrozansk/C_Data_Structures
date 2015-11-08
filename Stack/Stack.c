@@ -39,7 +39,6 @@ typedef struct Frame {
 } Frame;
 
 typedef struct Stack {
-  void(*printer)(void *data);
   Frame *top;
   int size;
 } Stack; // Stack STRUCT
@@ -49,73 +48,58 @@ typedef struct Stack {
              		F U N C T I O N   P R O T O T Y P E S
 
 ***********************************************************************/
-Stack *stack_make(void(*printer)(void *data)); //make me a stack
-void stack_free(Stack *S);                     //free the stack
-void stack_delete(Stack *S);                   //delete the stack (free's data)
-Stack *stack_copy(Stack *S);                   //copy the stack
-Stack *stack_push(Stack *S, void *item);       //add an item to the top
-void *stack_pop(Stack *S);                     //return the Frame at the top of the stack and side effect the stack
-int stack_contains(Stack *S, void *data);      //returns whether the stack contains the data
-void stack_print(Stack *S);                    //print out the stack
+Stack *stack_make();            //make me a stack
+void stack_free(Stack *S, int free_data);                 //free the stack
+void stack_visit(Stack *S, void (*visitor)(void *data));  //aply visitor to everything in the stack
+Stack *stack_map(Stack *S, void *(*f)(void *data));       //map over the stack
+Stack *stack_push(Stack *S, void *item);                  //add an item to the top
+void *stack_pop(Stack *S);                                //return the Frame at the top of the stack and side effect the stack
+int stack_contains(Stack *S, int (*comparator)(void *data1, void *data2), void *data);                 //returns whether the stack contains the data
 
 /**********************************************************************
 
        		F U N C T I O N   I M P L E M E N T A T I O N S 
 
 ***********************************************************************/
-Stack *stack_make(void(*printer)(void *data)) {
+Stack *stack_make() {
   Stack *S = malloc(sizeof(Stack));
-  S->printer = printer;
   S->top = NULL;
   S->size = 0;
   return S;
 }
 
-void stack_free(Stack *S) {
+void stack_free(Stack *S, int free_data) {
   Frame *current = S->top;
   Frame *prev = S->top;
   while(current != NULL) {
     current = current->next;
+    if(free_data) { free(prev->data); }
     free(prev);
     current = prev;
   }
-  S->printer = NULL;
   S->top = NULL;
   S->size = 0;
 }
 
-//combine with free like in trees with int for del keys
-void stack_delete(Stack *S) {
-  Frame *current = S->top;
-  Frame *prev = S->top;
-  while(current != NULL) {
-    current = current->next;
-    free(prev->data);
-    free(prev);
-    current = prev;
-  }
-  S->printer = NULL;
-  S->top = NULL;
-  S->size = 0;
+void stack_visit(Stack *S, void (*visitor)(void *data)) {
+    Frame *current = S->top;
+    while(current != NULL) {
+      visitor(current->data);
+      current = current->next;
+    }
 }
 
-//chane this to map
-Stack *stack_copy(Stack *S) {
+Stack *stack_map(Stack *S, void *(*visitor)(void *data)) {
   Stack *new_stk = malloc(sizeof(Stack));
-  new_stk->printer = S->printer;
   new_stk->size = S->size;
   if(S->size == 0) { new_stk->top = NULL; }
   else {
-    Frame *new_top = malloc(sizeof(Frame));
-    new_top->data = S->top->data;
-    new_stk->top = new_top;
-    Frame *current = S->top->next;
-    Frame *prev = new_top;
+    Frame *current = S->top;
     while(current != NULL) {
       Frame *new_frame = malloc(sizeof(Frame));
-      new_frame->data = current->data;
-      prev->next = new_frame;
-      prev = new_frame;
+      new_frame->data = visitor(current->data);
+      new_frame->next = new_stk->top;
+      new_stk->top = new_frame;
       current = current->next;
     }
   }
@@ -140,23 +124,13 @@ void *stack_pop(Stack *S) {
   return data;
 }
 
-//will need comparator to do this correctly
-//1 if == 0 if not
-int stack_contains(Stack *S, void *data) {
+int stack_contains(Stack *S, int (*comparator)(void *data1, void *data2), void *data) {
   int wait_pos = 0;
   Frame *current = S->top;
   while(current != NULL) {
+    if(comparator(data, current->data) == 0) { return wait_pos; }
     wait_pos++;
-    if(current->data == data) { break; }
     current = current->next;
   }
-  return wait_pos;
-}
-
-void stack_print(Stack *S) {
-  Frame *F = S->top;
-  while(F != NULL) {
-    S->printer(F->data);
-    F = F->next;
-  }
+  return -1;
 }

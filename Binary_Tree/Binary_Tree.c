@@ -9,8 +9,7 @@
  Created: 9/7/15
  Last Edited: 10/29/15
  
- A binary search tree library, with no recursion. everything is
- implemented iteratively, using queues where necessary. 
+ An iterative binary search tree library
 */
 
 /**********************************************************************
@@ -47,7 +46,7 @@ typedef struct tr_node {
 typedef struct Tree {
   int (*comparator)(void *key1, void *key2);
   tr_node *root;
-  int size;
+  int size; //nodes in the tree
 } Tree;
 
 /**********************************************************************
@@ -56,16 +55,16 @@ typedef struct Tree {
 
 ***********************************************************************/
 tr_node *tr_node_make(void *key);                             //make a tree node given a key
-Tree *tr_node_delete(Tree *T, void *key, int free_key);       //free the node, and optionally its key, and fix up the tree
+Tree *tr_node_delete(Tree *T, tr_node *root, int free_key);   //free the node, and optionally its key, and fix up the tree
 Tree *tr_make(int (*comparator)(void *key1, void* key2));     //make a BST with given a comparator
 void tr_delete(Tree *T, int free_keys);                       //free the tree, and optionally the keys
 Tree *tr_map(Tree *T, void *(*f)(void *key));                 //traverse the tree while making a new one, user is responsible for malloc of new key!!
-tr_node *tr_maximum(tr_node *current);                        //return the biggest element in the tree
-tr_node *tr_minimum(tr_node *current);                        //return the smallest element in the tree
+tr_node *tr_maximum(tr_node *root);                           //return the biggest element in the tree
+tr_node *tr_minimum(tr_node *root);                           //return the smallest element in the tree
 tr_node *tr_search(Tree *T, void *key);                       //return the key if found or NULL
 Tree *tr_insert(Tree *T, void *key);                          //insert a key into the tree, no duplicates allowed
-tr_node *tr_succ(tr_node *current);                           //
-tr_node *tr_pred(tr_node *current);                           //
+tr_node *tr_succ(tr_node *root);                              //
+tr_node *tr_pred(tr_node *root);                              //
 int tr_height(Tree *T);                                       //return the height of the tree
 Tree *tr_walk(Tree *T, int walk, void (*visitor)(void *key)); //depth first search pre,in,post -> here visitor can also mutate val@key
 void tr_breadth_first(Tree *T, void (*visitor)(tr_node *key));//breadth first search of tree
@@ -84,15 +83,29 @@ tr_node *tr_node_make(void *key) {
   return new_node;
 }
 
-//not done yet
-Tree *tr_node_delete(Tree *T, void *key, int free_key) {
-  tr_node *found = tr_search(T, key); //should search return node or key
-  if(found != NULL) {
-    tr_node *prev = found->parent;
-    tr_node *l_sub = found->left;
-    tr_node *r_sub = found->right;
-    //... need succ and pred
+void tr_node_transplant(Tree *T, tr_node *u, tr_node *v) { //usr should not call this 
+  if(u->parent == NULL) { T->root = v; }
+  else if(u == u->parent->left) { u->parent->left = v; }
+  else { u->parent->right = v; }
+  if(v != NULL) { v->parent = u->parent; }
+}
+
+Tree *tr_node_delete(Tree *T, tr_node *z, int free_key) {
+  if(z->left == NULL) { tr_node_transplant(T, z, z->right); }
+  else if(z->right == NULL) { tr_node_transplant(T, z, z->left); }
+  else {
+    tr_node *y = tr_minimum(z->right);
+    if(y->parent != z) {
+      tr_node_transplant(T, y, y->right);
+      y->right = z->right;
+      y->right->parent = y;
+    }
+    tr_node_transplant(T, z, y);
+    y->left = z->left;
+    y->left->parent = y;
   }
+  if(free_key) { free(z->key); }
+  free(z);
   return T;
 }
 
@@ -220,7 +233,7 @@ tr_node *tr_succ(tr_node *current) {
   if(current->right != NULL) { return tr_minimum(current->right); }
   else {
     tr_node *parent = current->parent;
-    while(parent != NULL && current == parent->right) {
+    while(parent != NULL && parent->right == current) {
       current = parent;
       parent = parent->parent;
     }
@@ -232,7 +245,7 @@ tr_node *tr_pred(tr_node *current) {
   if(current->left != NULL) { return tr_maximum(current->left); }
   else {
     tr_node *parent = current->parent;
-    while(parent != NULL && current == parent->left) {
+    while(parent != NULL && parent->left == current) {
       current = parent;
       parent = parent->parent;
     }

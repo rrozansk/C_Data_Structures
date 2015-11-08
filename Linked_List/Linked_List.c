@@ -107,10 +107,7 @@ List *ls_copy(List *L) {
   C->printer = L->printer;
   C->comparator = L->comparator;
   C->size = L->size;
-  if(L->size == 0) {
-    C->head = NULL;
-    C->tail = NULL;
-  }
+  if(L->size == 0) { C->head = C->tail = NULL; }
   else {
     ls_node *new_head = malloc(sizeof(ls_node));
     new_head->data = L->head->data;
@@ -135,8 +132,8 @@ List *ls_insert_beginning(List *L, void *item) {
   head->data = item;
   head->next = L->head;
   L->head = head;
-  if(!L->size) L->tail = head;
-  L->size = L->size++;
+  if(ls_null(L)) { L->tail = head; }
+  L->size++;
   return L;
 }  
 

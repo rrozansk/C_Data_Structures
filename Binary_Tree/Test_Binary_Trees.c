@@ -34,22 +34,29 @@ void *make_key2(void *old_key) {
 
 int main() {
   
-//  srand(time(NULL));
+  srand(time(NULL));
 
   Tree *T = tr_make(comparator);
-/*
+
+  printf("making tree\n");
   int i = 0;
-  for(;i<100000;i++) { 
+  for(;i<10000000;i++) { 
     int *tmp = malloc(sizeof(int));
     *tmp = rand();
     tr_insert(T, tmp);
    }
-
+  printf("finished building tree, finding height\n");
   printf("tr height: %d\n", tr_height(T));
-  printf("tr walk:\n");
-  tr_walk(tr_walk(T, PREORDER, make_nil), INORDER, printer);
-*/
+  printf("deleting every node\n");
+  printf("tr nodes # -> %d\n", tr_size(T));
+  for(i=0;i<tr_size(T);i++) { 
+    tr_node_delete(T, T->root);
+   }
+  printf("deletion done\n");
+  //printf("tr walk:\n");
+  //tr_walk(tr_walk(T, PREORDER, make_nil), INORDER, printer);
 
+/*
   int *a = malloc(sizeof(int));
   *a = 1;
   int *b =  malloc(sizeof(int));
@@ -110,7 +117,7 @@ int main() {
           k),
         m),
       l);
-/*
+
   printf("breath first search of tree with visitor being the printer\n");
   tr_breadth_first(T, visitor);
   printf("pre-order walk of tree with visitor being the printer\n");
@@ -138,23 +145,35 @@ int main() {
   tr_free(T, 1); //since we malloc all our data we can tell the tree to delete the keys aswell (1)
   tr_free(T2, 1);
   printf("attempt's succesful\n");
-*/
-//  tr_insert(tr_insert(tr_insert(tr_insert(tr_insert(T, h), d), a), b), c);
+
+  tr_insert(tr_insert(tr_insert(tr_insert(tr_insert(T, h), d), a), b), c);
   printf("pre-order walk of tree with visitor being the printer\n");
   tr_walk(T, PREORDER, printer);
   printf("in-order walk of tree with visitor being the printer\n");
   tr_walk(T, INORDER, printer);
   printf("post-order walk of tree with visitor being the printer\n");
   tr_walk(T, POSTORDER, printer);
-  Tree *T2 = tr_map(T, make_key2);
-  printf("pre-order walk of map tree with visitor being the printer\n");
-  tr_walk(T2, PREORDER, printer);
-  printf("in-order walk of map tree with visitor being the printer\n");
-  tr_walk(T2, INORDER, printer);
-  printf("post-order walk of map tree with visitor being the printer\n");
-  tr_walk(T2, POSTORDER, printer);
-  printf("succ of 14: %d\n", *(int *)(tr_succ(T->root->right->right->right->left))->key);
-  printf("pred of 1: %d\n", (tr_pred(T->root->left->left)) == NULL);
-  
+  tr_node_delete(T, T->root);
+  tr_node_delete(T, T->root);
+  tr_node_delete(T, T->root);
+  tr_node_delete(T, T->root);
+  //tr_node_delete(tr_node_delete(tr_node_delete(tr_node_delete(T, T->root), T->root), T->root), T->root);
+  printf("pre-order walk of tree with visitor being the printer\n");
+  tr_walk(T, PREORDER, printer);
+  printf("in-order walk of tree with visitor being the printer\n");
+  tr_walk(T, INORDER, printer);
+  printf("post-order walk of tree with visitor being the printer\n");
+  tr_walk(T, POSTORDER, printer);
+
+  //Tree *T2 = tr_map(T, make_key2);
+  //printf("pre-order walk of map tree with visitor being the printer\n");
+  //tr_walk(T2, PREORDER, printer);
+  //printf("in-order walk of map tree with visitor being the printer\n");
+  //tr_walk(T2, INORDER, printer);
+  //printf("post-order walk of map tree with visitor being the printer\n");
+  //tr_walk(T2, POSTORDER, printer);
+  //printf("succ of 14: %d\n", *(int *)(tr_succ(T->root->right->right->right->left))->key);
+  //printf("pred of 1: %d\n", (tr_pred(T->root->left->left)) == NULL);
+*/ 
   return 0;
 }
