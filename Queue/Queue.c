@@ -7,7 +7,7 @@
 /* 
  Author: Ryan Rozanski
  Created: 9/6/15
- Last Edited: 10/18/15
+ Last Edited: 11/8/15
  
  A general purpose queue library for arbitrary payloads
 */
@@ -25,8 +25,8 @@
 
 ***********************************************************************/
 #define queue_size(Q) Q->size
-#define queue_peek(Q) Q->head->data
 #define queue_empty(Q) !Q->size
+#define queue_peek(Q) Q->head->data
 
 /**********************************************************************
 
@@ -51,11 +51,11 @@ typedef struct Queue {
 ***********************************************************************/
 Queue *queue_make();                                 //make a new queue
 void queue_free(Queue *Q, int free_data);            //free a queue and optionally its data
-Queue *queue_walk(Queue *Q, void (*f)(void *data));  //copy a queue
-Queue *queue_map(Queue *Q, void *(*f)(void *data));  //copy a queue
+void queue_walk(Queue *Q, void (*f)(void *data));    //walk over the queue
+Queue *queue_map(Queue *Q, void *(*f)(void *data));  //map f over Q and return a new queue
 Queue *queue_enqueue(Queue *Q, void *data);          //add an item at the tail
 void *queue_dequeue(Queue *Q);                       //remove the item at the head and return it
-int queue_contains(Queue *Q, int (*comparator)(void *data1, void *data2), void *data); //return the waiting position of data in the queue 
+int queue_contains(Queue *Q, int (*comparator)(void *data1, void *data2), void *data); //return the waiting position of data in the queue or -1
 
 /**********************************************************************
 
@@ -72,24 +72,20 @@ Queue *queue_make() {
 
 void queue_free(Queue *Q, int free_data) {
   q_node *current = Q->head;
-  q_node *prev;
   while(current != NULL) {
-    prev = current;
-    current = current->next;
-    if(free_data) { free(prev->data); }
-    free(prev);
+    Q->head = current->next;
+    if(free_data) { free(current->data); }
+    free(current);
+    current = Q->head;
   }
   Q->head = NULL;
   Q->tail = NULL;
   Q->size = 0;
 }
 
-Queue *queue_walk(Queue *Q, void (*f)(void *data)) {
+void queue_walk(Queue *Q, void (*f)(void *data)) {
   q_node *current = Q->head;
-  while(current != NULL) { 
-    f(current->data);
-    current = current->next; }
-  return Q;
+  for(;current != NULL; current = current->next) { f(current->data); }
 }
 
 Queue *queue_map(Queue *Q, void *(*f)(void *data)) {
@@ -104,13 +100,11 @@ Queue *queue_map(Queue *Q, void *(*f)(void *data)) {
     C->head = C->tail = new_node;
     current = current->next;
   }
-  while(current != NULL) {
+  for(;current != NULL; current = current->next) {
     new_node = malloc(sizeof(q_node));
     new_node->data = f(current->data);
     new_node->next = NULL;
-    C->tail->next = new_node;
-    C->tail = new_node;
-    current = current->next;
+    C->tail = C->tail->next = new_node;
   }
   return C;
 }
@@ -119,14 +113,8 @@ Queue *queue_enqueue(Queue *Q, void *data) {
   q_node *N = malloc(sizeof(q_node));
   N->next = NULL;
   N->data = data;
-  if(queue_empty(Q)) {
-    Q->head = N;
-    Q->tail = N;
-  }
-  else {
-    Q->tail->next = N;
-    Q->tail = N;
-  }
+  if(queue_empty(Q)) { Q->head = Q->tail = N; }
+  else { Q->tail = Q->tail->next = N; }
   Q->size++;
   return Q;
 }
@@ -142,10 +130,9 @@ void *queue_dequeue(Queue *Q) {
 int queue_contains(Queue *Q, int (*comparator)(void *data1, void *data2), void *data) {
   int wait_pos = 0;
   q_node *current = Q->head;
-  while(current != NULL) {
-    if(comparator(data, current->data) == 0) { break; }
-    wait_pos++;
-    current = current->next;
+  for(;current != NULL; current = current->next, wait_pos++) {
+    if(comparator(data, current->data) == 0) { return wait_pos; }
   }
   return -1;
 }
+

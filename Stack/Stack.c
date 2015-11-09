@@ -7,7 +7,7 @@
 /*
  Author: Ryan Rozanski
  Created: 9/6/15
- Last Edited: 10/18/15
+ Last Edited: 11/8/15
  
  A library for general use of stacks for arbitrary data structures (payloads)
 */
@@ -26,7 +26,6 @@
 ***********************************************************************/
 #define stack_size(S) S->size
 #define stack_empty(S) !S->size
-#define stack_null(S) !S->size
 #define stack_peek(S) S->top->data
 
 /**********************************************************************
@@ -50,12 +49,12 @@ typedef struct Stack {
 
 ***********************************************************************/
 Stack *stack_make();                                                                   //make me a stack
-void stack_free(Stack *S, int free_data);                                              //free the stack
-void stack_walk(Stack *S, void (*visitor)(void *data));                                //aply visitor to everything in the stack
+void stack_free(Stack *S, int free_data);                                              //free the stack and optionally its data
+void stack_walk(Stack *S, void (*visitor)(void *data));                                //apply visitor to everything in the stack
 Stack *stack_map(Stack *S, void *(*f)(void *data));                                    //map over the stack
 Stack *stack_push(Stack *S, void *item);                                               //add an item to the top
-void *stack_pop(Stack *S);                                                             //return the Frame at the top of the stack and side effect the stack
-int stack_contains(Stack *S, int (*comparator)(void *data1, void *data2), void *data); //returns whether the stack contains the data
+void *stack_pop(Stack *S);                                                             //return the data at the top of the stack
+int stack_contains(Stack *S, int (*comparator)(void *data1, void *data2), void *data); //returns the waiting pos of data or -1
 
 /**********************************************************************
 
@@ -71,38 +70,38 @@ Stack *stack_make() {
 
 void stack_free(Stack *S, int free_data) {
   Frame *current = S->top;
-  Frame *trash;
   while(current != NULL) {
-    trash = current;
-    current = current->next;
-    if(free_data) { free(trash->data); }
-    free(trash);
+    S->top = current->next;
+    if(free_data) { free(current->data); }
+    free(current);
+    current = S->top;
   }
   S->top = NULL;
   S->size = 0;
 }
 
 void stack_walk(Stack *S, void (*visitor)(void *data)) {
-    Frame *current = S->top;
-    while(current != NULL) {
-      visitor(current->data);
-      current = current->next;
-    }
+  Frame *current = S->top;
+  for(;current != NULL; current = current->next) { visitor(current->data); }
 }
 
 Stack *stack_map(Stack *S, void *(*visitor)(void *data)) {
   Stack *new_stk = malloc(sizeof(Stack));
   new_stk->size = S->size;
-  if(S->size == 0) { new_stk->top = NULL; }
-  else {
-    Frame *current = S->top;
-    while(current != NULL) {
-      Frame *new_frame = malloc(sizeof(Frame));
-      new_frame->data = visitor(current->data);
-      new_frame->next = new_stk->top;
-      new_stk->top = new_frame;
-      current = current->next;
-    }
+  Frame *current = S->top;
+  Frame *new_frame, *prev;
+  if(!stack_empty(S)) {
+    new_frame = malloc(sizeof(Frame));
+    new_frame->data = visitor(current->data);
+    new_frame->next = NULL;
+    new_stk->top = prev = new_frame;
+    current = current->next;
+  }
+  for(;current != NULL; current = current->next) {
+    new_frame = malloc(sizeof(Frame));
+    new_frame->data = visitor(current->data);
+    new_frame->next = NULL;
+    prev = prev->next = new_frame;
   }
   return new_stk;
 }
@@ -128,10 +127,8 @@ void *stack_pop(Stack *S) {
 int stack_contains(Stack *S, int (*comparator)(void *data1, void *data2), void *data) {
   int wait_pos = 0;
   Frame *current = S->top;
-  while(current != NULL) {
+  for(;current != NULL; current = current->next, wait_pos++) {
     if(comparator(data, current->data) == 0) { return wait_pos; }
-    wait_pos++;
-    current = current->next;
   }
   return -1;
 }
