@@ -25,6 +25,7 @@
 
 ***********************************************************************/
 #define stack_size(S) S->size
+#define stack_empty(S) !S->size
 #define stack_null(S) !S->size
 #define stack_peek(S) S->top->data
 
@@ -48,13 +49,13 @@ typedef struct Stack {
              		F U N C T I O N   P R O T O T Y P E S
 
 ***********************************************************************/
-Stack *stack_make();            //make me a stack
-void stack_free(Stack *S, int free_data);                 //free the stack
-void stack_visit(Stack *S, void (*visitor)(void *data));  //aply visitor to everything in the stack
-Stack *stack_map(Stack *S, void *(*f)(void *data));       //map over the stack
-Stack *stack_push(Stack *S, void *item);                  //add an item to the top
-void *stack_pop(Stack *S);                                //return the Frame at the top of the stack and side effect the stack
-int stack_contains(Stack *S, int (*comparator)(void *data1, void *data2), void *data);                 //returns whether the stack contains the data
+Stack *stack_make();                                                                   //make me a stack
+void stack_free(Stack *S, int free_data);                                              //free the stack
+void stack_walk(Stack *S, void (*visitor)(void *data));                                //aply visitor to everything in the stack
+Stack *stack_map(Stack *S, void *(*f)(void *data));                                    //map over the stack
+Stack *stack_push(Stack *S, void *item);                                               //add an item to the top
+void *stack_pop(Stack *S);                                                             //return the Frame at the top of the stack and side effect the stack
+int stack_contains(Stack *S, int (*comparator)(void *data1, void *data2), void *data); //returns whether the stack contains the data
 
 /**********************************************************************
 
@@ -70,18 +71,18 @@ Stack *stack_make() {
 
 void stack_free(Stack *S, int free_data) {
   Frame *current = S->top;
-  Frame *prev = S->top;
+  Frame *trash;
   while(current != NULL) {
+    trash = current;
     current = current->next;
-    if(free_data) { free(prev->data); }
-    free(prev);
-    current = prev;
+    if(free_data) { free(trash->data); }
+    free(trash);
   }
   S->top = NULL;
   S->size = 0;
 }
 
-void stack_visit(Stack *S, void (*visitor)(void *data)) {
+void stack_walk(Stack *S, void (*visitor)(void *data)) {
     Frame *current = S->top;
     while(current != NULL) {
       visitor(current->data);
