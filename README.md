@@ -8,5 +8,11 @@ Current Implementations of:
 Stacks,
 Queues,
 Linked Lists,
-Binary Trees
+Binary Search Trees
 
+all data structure implement macros for size (number of nodes), empty and
+sometimes peek. 
+
+all data structures implement functions for make, free, traversal, insert,
+delete, and search functionality. sometimes a few other utility functions are
+also present
