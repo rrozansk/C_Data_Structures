@@ -7,7 +7,7 @@
 /* 
  Author: Ryan Rozanski
  Created: 9/7/15
- Last Edited: 10/29/15
+ Last Edited: 11/8/15
  
  An iterative binary search tree library
 */
@@ -28,8 +28,9 @@
 #define PREORDER -1
 #define INORDER 0
 #define POSTORDER 1
-#define tr_null(T) !T->size
 #define tr_size(T) T->size
+#define tr_empty(T) !T->size
+#define tr_peek(T) T->root->data
 
 /**********************************************************************
 
@@ -56,9 +57,14 @@ typedef struct Tree {
 ***********************************************************************/
 tr_node *tr_node_make(void *key);                             //make a tree node given a key
 Tree *tr_node_delete(Tree *T, tr_node *root, int free_key);   //free the node, and optionally its key, and fix up the tree
+
 Tree *tr_make(int (*comparator)(void *key1, void* key2));     //make a BST with given a comparator
-void tr_delete(Tree *T, int free_keys);                       //free the tree, and optionally the keys
+void tr_free(Tree *T, int free_keys);                       //free the tree, and optionally the keys
+void tr_walk(Tree *T, int walk, void (*visitor)(void *key)); //depth first search pre,in,post -> here visitor can also mutate val@key
 Tree *tr_map(Tree *T, void *(*f)(void *key));                 //traverse the tree while making a new one, user is responsible for malloc of new key!!
+
+//contains
+
 tr_node *tr_maximum(tr_node *root);                           //return the biggest element in the tree
 tr_node *tr_minimum(tr_node *root);                           //return the smallest element in the tree
 tr_node *tr_search(Tree *T, void *key);                       //return the key if found or NULL
@@ -66,7 +72,6 @@ Tree *tr_insert(Tree *T, void *key);                          //insert a key int
 tr_node *tr_succ(tr_node *root);                              //
 tr_node *tr_pred(tr_node *root);                              //
 int tr_height(Tree *T);                                       //return the height of the tree
-Tree *tr_walk(Tree *T, int walk, void (*visitor)(void *key)); //depth first search pre,in,post -> here visitor can also mutate val@key
 void tr_breadth_first(Tree *T, void (*visitor)(tr_node *key));//breadth first search of tree
 
 /**********************************************************************
@@ -274,7 +279,7 @@ int tr_height(Tree *T) {
   else { return 0; }
 }
 
-Tree *tr_walk(Tree *T, int walk, void (*visitor)(void *key)) {
+void tr_walk(Tree *T, int walk, void (*visitor)(void *key)) {
   tr_node *current = T->root;
   signed char state_flag = -1;
   while(current != NULL) {
@@ -299,7 +304,6 @@ Tree *tr_walk(Tree *T, int walk, void (*visitor)(void *key)) {
         break;
     }
   }
-  return T;
 }
 
 void tr_breadth_first(Tree *T, void (*visitor)(tr_node *key)) {
@@ -313,6 +317,6 @@ void tr_breadth_first(Tree *T, void (*visitor)(tr_node *key)) {
       if(current->left != NULL) { queue_enqueue(Q, current->left); }
       if(current->right != NULL) { queue_enqueue(Q, current->right); }
     }
-    queue_free(Q);
+    queue_free(Q, 0);
   }
 }

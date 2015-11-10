@@ -7,7 +7,7 @@
 /* 
  Author: Ryan Rozanski
  Created: 9/6/15
- Last Edited: 11/8/15
+ Last Edited: 11/9/15
  
  A general purpose queue library for arbitrary payloads
 */
@@ -49,13 +49,13 @@ typedef struct Queue {
              		F U N C T I O N   P R O T O T Y P E S
 
 ***********************************************************************/
-Queue *queue_make();                                 //make a new queue
-void queue_free(Queue *Q, int free_data);            //free a queue and optionally its data
-void queue_walk(Queue *Q, void (*f)(void *data));    //walk over the queue
-Queue *queue_map(Queue *Q, void *(*f)(void *data));  //map f over Q and return a new queue
-Queue *queue_enqueue(Queue *Q, void *data);          //add an item at the tail
-void *queue_dequeue(Queue *Q);                       //remove the item at the head and return it
-int queue_contains(Queue *Q, int (*comparator)(void *data1, void *data2), void *data); //return the waiting position of data in the queue or -1
+Queue *queue_make();                                                                //make a new queue
+void queue_free(Queue *Q, int free_data);                                           //free the queue and optionally its data
+void queue_walk(Queue *Q, void (*f)(void *data));                                   //walk over the queue and apply side-effect f to each elem
+Queue *queue_map(Queue *Q, void *(*f)(void *data));                                 //return a new queue resulting from applying f to each elem
+Queue *queue_enqueue(Queue *Q, void *data);                                         //add an item at the tail (end) of the queue
+void *queue_dequeue(Queue *Q);                                                      //return the data from the head (top) of the queue and side effect the queue
+int queue_search(Queue *Q, void *data, int (*comparator)(void *data1, void *data2));//return index of item if in the queue, otherwise -1
 
 /**********************************************************************
 
@@ -127,7 +127,7 @@ void *queue_dequeue(Queue *Q) {
   return N->data;
 }
 
-int queue_contains(Queue *Q, int (*comparator)(void *data1, void *data2), void *data) {
+int queue_search(Queue *Q, void *data, int (*comparator)(void *data1, void *data2)) {
   int wait_pos = 0;
   q_node *current = Q->head;
   for(;current != NULL; current = current->next, wait_pos++) {

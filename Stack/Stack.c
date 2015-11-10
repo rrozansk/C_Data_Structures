@@ -7,7 +7,7 @@
 /*
  Author: Ryan Rozanski
  Created: 9/6/15
- Last Edited: 11/8/15
+ Last Edited: 11/9/15
  
  A library for general use of stacks for arbitrary data structures (payloads)
 */
@@ -48,13 +48,13 @@ typedef struct Stack {
              		F U N C T I O N   P R O T O T Y P E S
 
 ***********************************************************************/
-Stack *stack_make();                                                                   //make me a stack
-void stack_free(Stack *S, int free_data);                                              //free the stack and optionally its data
-void stack_walk(Stack *S, void (*visitor)(void *data));                                //apply visitor to everything in the stack
-Stack *stack_map(Stack *S, void *(*f)(void *data));                                    //map over the stack
-Stack *stack_push(Stack *S, void *item);                                               //add an item to the top
-void *stack_pop(Stack *S);                                                             //return the data at the top of the stack
-int stack_contains(Stack *S, int (*comparator)(void *data1, void *data2), void *data); //returns the waiting pos of data or -1
+Stack *stack_make();                                                                //make a new stack
+void stack_free(Stack *S, int free_data);                                           //free the stack and optionally its data
+void stack_walk(Stack *S, void (*f)(void *data));                                   //walk over the stack and apply side-effect f to each elem
+Stack *stack_map(Stack *S, void *(*f)(void *data));                                 //return a new stack resulting from applying f to each elem
+Stack *stack_push(Stack *S, void *data);                                            //add an item to the top of the stack
+void *stack_pop(Stack *S);                                                          //return the data from the top of the stack and side effect the stack
+int stack_search(Stack *S, void *data, int (*comparator)(void *data1, void *data2));//return index of item if in the stack, otherwise -1
 
 /**********************************************************************
 
@@ -80,26 +80,26 @@ void stack_free(Stack *S, int free_data) {
   S->size = 0;
 }
 
-void stack_walk(Stack *S, void (*visitor)(void *data)) {
+void stack_walk(Stack *S, void (*f)(void *data)) {
   Frame *current = S->top;
-  for(;current != NULL; current = current->next) { visitor(current->data); }
+  for(;current != NULL; current = current->next) { f(current->data); }
 }
 
-Stack *stack_map(Stack *S, void *(*visitor)(void *data)) {
+Stack *stack_map(Stack *S, void *(*f)(void *data)) {
   Stack *new_stk = malloc(sizeof(Stack));
   new_stk->size = S->size;
   Frame *current = S->top;
   Frame *new_frame, *prev;
   if(!stack_empty(S)) {
     new_frame = malloc(sizeof(Frame));
-    new_frame->data = visitor(current->data);
+    new_frame->data = f(current->data);
     new_frame->next = NULL;
     new_stk->top = prev = new_frame;
     current = current->next;
   }
   for(;current != NULL; current = current->next) {
     new_frame = malloc(sizeof(Frame));
-    new_frame->data = visitor(current->data);
+    new_frame->data = f(current->data);
     new_frame->next = NULL;
     prev = prev->next = new_frame;
   }
@@ -124,7 +124,7 @@ void *stack_pop(Stack *S) {
   return data;
 }
 
-int stack_contains(Stack *S, int (*comparator)(void *data1, void *data2), void *data) {
+int stack_search(Stack *S, void *data, int (*comparator)(void *data1, void *data2)) {
   int wait_pos = 0;
   Frame *current = S->top;
   for(;current != NULL; current = current->next, wait_pos++) {
