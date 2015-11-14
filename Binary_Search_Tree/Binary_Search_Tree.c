@@ -9,7 +9,7 @@
  Created: 9/7/15
  Last Edited: 11/9/15
  
- An iterative binary search tree library
+ A general purpose iterative BST library for arbitrary payloads
 */
 
 /**********************************************************************
@@ -58,6 +58,8 @@ typedef struct BST {
 BST *bst_make(int (*comparator)(void *key1, void* key2));//make a new BST with given a comparator
 void bst_free(BST *T, int free_keys);                    //free the BST and optionally its keys
 void bst_breadth_first(BST *T, void (*f)(bst_node *key));//breadth first search of BST
+//void bst_a*(BST *T, void (*f)(bst_node *key));           //
+//void bst_best_first(BST *T, void (*f)(bst_node *key));   //
 void bst_walk(BST *T, int walk, void (*f)(void *key));   //walk over the BST [depth first search pre,in,post] and apply side-effect f to each elem 
 BST *bst_map(BST *T, void *(*f)(void *key));             //return a new BST resulting from applying f to each elem
 BST *bst_insert(BST *T, void *key);                      //add an item to the BST, no duplicates allowed
@@ -113,7 +115,7 @@ void bst_free(BST *T, int free_keys) {
 }
 
 void bst_breadth_first(BST *T, void (*f)(bst_node *key)) {
-  Queue *Q = queue_make(NULL); //this should be fine since i wont print it
+  Queue *Q = queue_make();
   queue_enqueue(Q, T->root);
   bst_node *current;
   while(!queue_empty(Q)) {
@@ -217,50 +219,52 @@ BST *bst_insert(BST *T, void *key) {
     current->right = NULL;
     current->key = key;
     current->parent = parent;
-    if(comp == -1) { parent->left = current; }
-    else { parent->right = current; }
+    (comp == -1) ? (parent->left = current) : (parent->right = current);
   }
   T->size++;
   return T;
 }
 
 BST *bst_remove(BST *T, void *key, int free_key) {
-  bst_node *z = bst_search(T, key);
-  if(z->left == NULL) { 
-    if(z->parent == NULL) { T->root = z->left; }
-    else if(z == z->parent->left) { z->parent->left = z->left; }
-    else { z->parent->right = z->left; }
-    if(z->left != NULL) { z->left->parent = z->parent; }
-  }
-  else if(z->right == NULL) { 
-    if(z->parent == NULL) { T->root = z->left; }
-    else if(z == z->parent->left) { z->parent->left = z->left; }
-    else { z->parent->right = z->left; }
-    if(z->left != NULL) { z->left->parent = z->parent; }
+  bst_node *trash = bst_search(T, key);
+  if(trash == NULL) { return T; } //cannot remove if not contained 
+  if(trash->left != NULL && trash->right != NULL) { //2 children
+    bst_node *succ = bst_maximum(trash); //will have at most only 1 child
+    if(succ->left == NULL) { succ->parent->right = NULL; }
+    else {  //has child (LEFT) 
+      succ->parent->right = succ->left; 
+      succ->left->parent = succ->parent;
+    }
+    key = trash->key;
+    trash->key = succ->key;
+    succ->key = key;
+    trash = succ;
   }
   else {
-    bst_node *y = bst_minimum(z->right);
-    if(y->parent != z) {
-      if(y->parent == NULL) { T->root = y->right; }
-      else if(y == y->parent->left) { y->parent->left = y->right; }
-      else { y->parent->right = y->right; }
-      if(y->right != NULL) { y->right->parent = y->parent; }
-      y->right = z->right;
-      y->right->parent = y;
+    bst_node *val;
+    if(trash->left == NULL && trash->right == NULL) { val = NULL; } //if no children just fix up pointers
+    else if(trash->right == NULL) { //1 child (LEFT)
+      trash->left->parent = trash->parent;
+      val = trash->left;
     }
-    if(z->parent == NULL) { T->root = y; }
-    else if(z == z->parent->left) { z->parent->left = y; }
-    else { z->parent->right = y; }
-    if(y != NULL) { y->parent = z->parent; }
-    y->left = z->left;
-    y->left->parent = y;
+    else { //1 child (RIGHT) (trash->left == NULL)
+      trash->right->parent = trash->parent;
+      val = trash->right;
+    }
+    //fix up tree
+    if(trash->parent != NULL) {
+      if(trash == trash->parent->left) { trash->parent->left = val; }
+      else { trash->parent->right = val; }
+    }
+    else { T->root = val; }
   }
-  if(free_key) { free(z->key); }
-  free(z);
+  if(free_key) { free(trash->key); }
+  free(trash);
+  T->size--;
   return T;
 }
 
-bst_node *tr_search(BST *T, void *key) {
+bst_node *bst_search(BST *T, void *key) {
   bst_node *current = T->root;
   int comp;
   while(current != NULL) {
@@ -272,12 +276,12 @@ bst_node *tr_search(BST *T, void *key) {
   return current;
 }
 
-bst_node *tr_minimum(bst_node *current) {
+bst_node *bst_minimum(bst_node *current) {
   while(current->left != NULL) { current = current->left; }
   return current;
 }
 
-bst_node *tr_maximum(bst_node *current) {
+bst_node *bst_maximum(bst_node *current) {
   while(current->right != NULL) { current = current->right; }
   return current;
 }
