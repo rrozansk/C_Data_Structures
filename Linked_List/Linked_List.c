@@ -9,7 +9,7 @@
  Created: 9/6/15
  Last Edited: 11/9/15
  
- A linked ls library for use with arbitrary data structures
+ A general purpose linked list library for arbitrary payloads
 */
 
 /**********************************************************************
@@ -153,7 +153,7 @@ List *ls_insert_nth(List *L, int n, void *data) {
   }
 }
 
-List *ls_remove_nth_item(List *L, int n, int free_data) {
+List *ls_remove_nth(List *L, int n, int free_data) {
   ls_node *current = L->head;
   if(n == 0) { //removing first item
     if(ls_size(L) == 1) { L->head = L->tail = NULL; }
@@ -207,51 +207,34 @@ List *ls_reverse(List *L) {
   return L;
 }
 
-ls_node *merge_sort(ls_node *head, int size, List *L, int (*comparator)(void *data1, void *data2)) {
-  if(size <= 1) { return head; }
-  else {
-    int i = 0;
-    int new_size = size/2;
-    ls_node *new_head = head;
-    for(;i<new_size-1;i++) { new_head = new_head->next; }
-    ls_node *current = new_head;
-    new_head = new_head->next;
-    current->next = NULL;
-    ls_node *l = merge_sort(head, new_size, L, comparator);
-    ls_node *s = merge_sort(new_head, size-new_size, L, comparator);
-    if(comparator(l->data, s->data) < 1) { //merge l and s iteratively
-      current = head = l;
-      l = l->next;
-    }
-    else { 
-      current = head = s;
-      s = s->next;
-    }
-    while(1) {
-      if(l == NULL) { 
-        current->next = s;
-        break;
-      } 
-      if(s == NULL) { 
-        current->next = l;
-        break;
-      }
-      if(comparator(l->data, s->data) < 1) {
-        current = current->next = l;
-        l = l->next;
-      }
-      else {
-        current = current->next = s;
-        s = s->next;
-      }
-    }
-    return head;
-  }
-}
-
 List *ls_sort(List *L, int (*comparator)(void *data1, void *data2)) {
-  L->head = merge_sort(L->head, L->size, L, comparator);
-  L->tail = L->head;
-  while(L->tail->next != NULL) { L->tail = L->tail->next; }
+  int listSize = 1, numMerges, leftSize, rightSize;
+  ls_node *list = L->head, *tail,*left,*right,*next;
+  do {
+    numMerges = 0;
+    left = list;
+    tail = list = NULL;
+    while(left != NULL) {
+      numMerges++;
+      right = left;
+      leftSize = 0;
+      rightSize = listSize;
+      while(right != NULL && leftSize < listSize) { leftSize++,right = right->next; }
+      while(leftSize > 0 || (rightSize > 0 && right != NULL)) {
+        if(leftSize == 0) {next = right; right = right->next; rightSize--; }
+        else if(rightSize == 0 || right == NULL) {next = left; left = left->next; leftSize--; }
+        else if(comparator(left->data,right->data) < 0) {next = left; left = left->next; leftSize--; }
+        else {next = right; right = right->next; rightSize--; }
+        if(tail != NULL) { tail->next = next; }
+        else { list = next; }
+        tail = next;
+      }
+      left = right;
+    }
+    if(tail != NULL) { tail->next = NULL; }
+    listSize <<= 1;
+  } while(numMerges > 1);
+  L->head = list;
+  L->tail = tail;
   return L;
 }
