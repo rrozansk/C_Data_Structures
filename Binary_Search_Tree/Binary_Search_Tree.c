@@ -63,7 +63,7 @@ void bst_breadth_first(BST *T, void (*f)(bst_node *key));//breadth first search 
 void bst_walk(BST *T, int walk, void (*f)(void *key));   //walk over the BST [depth first search pre,in,post] and apply side-effect f to each elem 
 BST *bst_map(BST *T, void *(*f)(void *key));             //return a new BST resulting from applying f to each elem
 BST *bst_insert(BST *T, void *key);                      //add an item to the BST, no duplicates allowed
-BST *bst_remove(BST *T, void *key, int free_key);        //remove the node with the given key from the BST
+BST *bst_remove(BST *T, bst_node *root, int free_key);   //remove the node with the given key from the BST
 bst_node *bst_search(BST *T, void *key);                 //return the node which contains key if found in BST, NULL otherwise
 bst_node *bst_minimum(bst_node *root);                   //return the smallest element in the BST
 bst_node *bst_maximum(bst_node *root);                   //return the biggest element in the BST
@@ -225,41 +225,35 @@ BST *bst_insert(BST *T, void *key) {
   return T;
 }
 
-BST *bst_remove(BST *T, void *key, int free_key) {
-  bst_node *trash = bst_search(T, key);
-  if(trash == NULL) { return T; } //cannot remove if not contained 
-  if(trash->left != NULL && trash->right != NULL) { //2 children
-    bst_node *succ = bst_maximum(trash); //will have at most only 1 child
-    if(succ->left == NULL) { succ->parent->right = NULL; }
-    else {  //has child (LEFT) 
-      succ->parent->right = succ->left; 
-      succ->left->parent = succ->parent;
-    }
-    key = trash->key;
-    trash->key = succ->key;
-    succ->key = key;
-    trash = succ;
+BST *bst_remove(BST *T, bst_node *N, int free_key) {
+  if(N == NULL) { return T; } //cannot remove if not contained 
+  if(N->left != NULL && N->right != NULL) { //2 children
+    bst_node *succ = bst_minimum(N->right); //will have at most only 1 child (right)
+    N->key = succ->key;
+    N = succ;
+    bst_remove(T, N, free_key);
+    return T; //so we dont size-- and double free
   }
   else {
     bst_node *val;
-    if(trash->left == NULL && trash->right == NULL) { val = NULL; } //if no children just fix up pointers
-    else if(trash->right == NULL) { //1 child (LEFT)
-      trash->left->parent = trash->parent;
-      val = trash->left;
+    if(N->left == NULL && N->right == NULL) { val = NULL; } //if no children just fix up pointers
+    else if(N->right == NULL) { //1 child (LEFT)
+      N->left->parent = N->parent;
+      val = N->left;
     }
-    else { //1 child (RIGHT) (trash->left == NULL)
-      trash->right->parent = trash->parent;
-      val = trash->right;
+    else { //1 child (RIGHT) (N->left == NULL)
+      N->right->parent = N->parent;
+      val = N->right;
     }
     //fix up tree
-    if(trash->parent != NULL) {
-      if(trash == trash->parent->left) { trash->parent->left = val; }
-      else { trash->parent->right = val; }
+    if(N->parent != NULL) {
+      if(N == N->parent->left) { N->parent->left = val; }
+      else { N->parent->right = val; }
     }
     else { T->root = val; }
   }
-  if(free_key) { free(trash->key); }
-  free(trash);
+  if(free_key) { free(N->key); }
+  free(N);
   T->size--;
   return T;
 }
