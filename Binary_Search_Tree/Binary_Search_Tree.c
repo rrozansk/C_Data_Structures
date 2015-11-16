@@ -231,7 +231,7 @@ BST *bst_remove(BST *T, bst_node *N, int free_key) {
     bst_node *succ = bst_minimum(N->right); //will have at most only 1 child (right)
     N->key = succ->key;
     N = succ;
-    bst_remove(T, N, free_key);
+    bst_remove(T, N, free_key); //the ONLY recursion to ever happen
     return T; //so we dont size-- and double free
   }
   else {

@@ -9,7 +9,7 @@
  Created: 9/6/15
  Last Edited: 11/9/15
  
- A general purpose queue library for arbitrary payloads
+ A general purpose iterative queue library for arbitrary payloads
 */
 
 /**********************************************************************

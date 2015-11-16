@@ -8,14 +8,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define cons(x, ls) ls_insert_beginning(ls, x)
-#define snoc(x, ls) ls_insert_end(ls, x)
-#define car(ls) ls_ref(ls, 0)
-
-List *cdr(List *L) {
-  return L = ls_remove(L, ls_ref(L, 0));
-}
-
 typedef struct S {
   int num;
 } S_t;
@@ -34,7 +26,7 @@ int comparator(void *data1, void *data2) {
 
 int main() {
 
-  List *ls = ls_make(printer, comparator);
+  List *ls = ls_make();
   S_t *val1 = malloc(sizeof(S_t));
   val1->num = 5;
   
@@ -59,32 +51,18 @@ int main() {
   S_t *val8 = malloc(sizeof(S_t));
   val8->num = 1;
 
-  ls = cons(val1, cons(val2, cons(val3, cons(val4, cons(val5, cons(val6, snoc(val8, snoc(val7, snoc(val6, ls)))))))));
-  ls_print(ls);
-  List *A = ls_append(ls, ls);
-  List *C = ls_copy(A);
-  ls_free(A);
-  ls_sort(C);
+  ls = ls_cons(ls_cons(ls_cons(ls_cons(ls_cons(ls_cons(ls_cons(ls_cons(ls, val6), val7), val8), val5), val4), val3), val2), val1);
+  printf("list\n");
+  ls_walk(ls, printer);
   printf("sorted C\n");
-  ls_print(C);
-  printf("car -> %d\n", *(int *)car(ls));
+  ls_sort(ls, comparator);
+  ls_walk(ls, printer);
   printf("list reverse\n");
   ls_reverse(ls);
-  ls_print(ls);
-  printf("sort\n");
-  ls_sort(ls);
-  ls_print(ls);
-  printf("size of ls bf %d cdr's -> %d\n", 2, ls->size);
-  cdr(cdr(ls)); 
-  ls_print(ls);
-  printf("size of ls -> %d\n", ls->size);
-  ls_set(ls, 0, val3);
-  ls_print(ls);
-  printf("car: %d\n", *(int *)car(ls));
+  ls_walk(ls, printer);
 
   //clean up
-  ls_delete(ls);
-  free(ls);
+  ls_free(ls, 1);
   ls = NULL;
 
   return 0;

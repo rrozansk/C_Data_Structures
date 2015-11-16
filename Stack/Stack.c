@@ -9,7 +9,7 @@
  Created: 9/6/15
  Last Edited: 11/9/15
  
- A library for general use of stacks for arbitrary data structures (payloads)
+ A general purpose iterative stack library for arbitrary payloads
 */
 
 /**********************************************************************
