@@ -229,29 +229,22 @@ BST *bst_remove(BST *T, bst_node *N, int free_key) {
   if(N == NULL) { return T; } //cannot remove if not contained 
   if(N->left != NULL && N->right != NULL) { //2 children
     bst_node *succ = bst_minimum(N->right); //will have at most only 1 child (right)
+    void *key = N->key;
     N->key = succ->key;
+    succ->key = key;
     N = succ;
-    bst_remove(T, N, free_key); //the ONLY recursion to ever happen
-    return T; //so we dont size-- and double free
   }
-  else {
-    bst_node *val;
-    if(N->left == NULL && N->right == NULL) { val = NULL; } //if no children just fix up pointers
-    else if(N->right == NULL) { //1 child (LEFT)
-      N->left->parent = N->parent;
-      val = N->left;
-    }
-    else { //1 child (RIGHT) (N->left == NULL)
-      N->right->parent = N->parent;
-      val = N->right;
-    }
-    //fix up tree
-    if(N->parent != NULL) {
-      if(N == N->parent->left) { N->parent->left = val; }
-      else { N->parent->right = val; }
-    }
-    else { T->root = val; }
+  bst_node *val = NULL;
+  if(N->right == NULL && N->left != NULL) { //1 child (LEFT)
+    N->left->parent = N->parent;
+    val = N->left;
   }
+  else if(N->left == NULL && N->right != NULL) { //1 child (RIGHT)
+    N->right->parent = N->parent;
+    val = N->right;
+  } //else N is a leaf, fix up tree
+  if(N->parent != NULL) { (N == N->parent->left) ? (N->parent->left = val) : (N->parent->right = val); }
+  else { T->root = val; }
   if(free_key) { free(N->key); }
   free(N);
   T->size--;

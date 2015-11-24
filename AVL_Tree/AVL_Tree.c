@@ -31,7 +31,7 @@
 #define avl_size(T) T->size
 #define avl_empty(T) !T->size
 #define avl_peek(T) T->root->data
-#define avl_height(T) T->root->height
+#define avl_height(T) T->root->height //problem if tree is null
 
 /**********************************************************************
 
@@ -70,10 +70,10 @@ int avl_balance_factor(avl_node *current);               //return the difference
 void avl_fix_height(avl_node *current);                  //after a rotation some node heights need readjusting
 avl_node *avl_rotate_left(AVL *T, avl_node *current);
 avl_node *avl_rotate_right(AVL *T, avl_node *current);
-avl_node *avl_balance(AVL *T, avl_node *current, void *key); //after insertion or deletion rebalance may be needed
+avl_node *avl_balance(AVL *T, avl_node *current);        //after insertion or deletion rebalance may be needed
 
-//AVL *avl_insert(AVL *T, void *key);                      //add an item to the AVL, no duplicates allowed
-//AVL *avl_remove(AVL *T, void *key, int free_key);        //remove the node with the given key from the AVL
+AVL *avl_insert(AVL *T, void *key);                      //add an item to the AVL, no duplicates allowed
+AVL *avl_remove(AVL *T, avl_node *root, int free_key);   //remove the node with the given key from the AVL
 avl_node *avl_search(AVL *T, void *key);                 //return the node which contains key if found in AVL, NULL otherwise
 avl_node *avl_minimum(avl_node *root);                   //return the smallest element in the AVL
 avl_node *avl_maximum(avl_node *root);                   //return the biggest element in the AVL
@@ -207,12 +207,10 @@ AVL *avl_map(AVL *T, void *(*f)(void *key)) {
 }
 
 int avl_balance_factor(avl_node *current) {
-  int diff;
-  if(current->left == NULL && current->right == NULL) { diff = 0; }
-  else if(current->left == NULL) { diff = -(current->right->height + 1); }
-  else if(current->right == NULL) { diff =  current->left->height + 1; }
-  else { diff = current->left->height - current->right->height; }
-  return diff;
+  if(current->left == NULL && current->right == NULL) { return 0; }
+  else if(current->left == NULL) { return -current->right->height; }
+  else if(current->right == NULL) { return current->left->height; }
+  else { return current->left->height - current->right->height; }
 }
 
 void avl_fix_height(avl_node *current) {
@@ -252,10 +250,10 @@ avl_node *avl_rotate_right(AVL *T, avl_node *root) {
   return pivot;
 }
 
-avl_node *avl_balance(AVL *T, avl_node *n, void *key) {
+avl_node *avl_balance(AVL *T, avl_node *n) {
   int diff = avl_balance_factor(n);
   if(diff < -1) { //tree is right heavy
-    if(T->comparator(key, n->right->key) == 1) {
+    if(avl_balance_factor(n->right) < 0) { //sub tree is right heavy
       n = avl_rotate_left(T, n);
     }
     else { 
@@ -264,7 +262,7 @@ avl_node *avl_balance(AVL *T, avl_node *n, void *key) {
     }
   }
   else if(diff > 1) { //tree is left heavy
-    if(T->comparator(key, n->left->key) == -1) {
+    if(avl_balance_factor(n->left) > 0) { //sub tree is left heavy
       n = avl_rotate_right(T, n);
     }
     else { 
@@ -302,17 +300,47 @@ AVL *avl_insert(AVL *T, void *key) {
     current->height = 0;
     current->key = key;
     (comp == -1) ? (parent->left = current) : (parent->right = current);
+    // SHOULD FIND FIRST SPOT WHICH WILL BECOME UNBALANCED AND THEN ONLY BALANCE
+    // THAT NODE, FOR AVL WE HAVE ATMOST 1 ROTATION TO PERFORM ON AN INSERT
     while(current->parent != NULL) { //go up, fix heights, performing needed rotations
       current = current->parent;
       avl_fix_height(current);
-      current = avl_balance(T, current, key);
+      current = avl_balance(T, current);
     }
   }
   T->size++;
   return T;
 }
 
-AVL *avl_remove(AVL *T, void *key, int free_key) {
+AVL *avl_remove(AVL *T, avl_node *N, int free_key) {
+  if(N == NULL) { return T; } //cannot remove if not contained 
+  if(N->left != NULL && N->right != NULL) { //2 children
+    avl_node *succ = avl_minimum(N->right); //will have at most only 1 child (right)
+    void *key = N->key;
+    N->key = succ->key;
+    succ->key = key;
+    N = succ;
+  }
+  avl_node *val = NULL;
+  if(N->right == NULL && N->left != NULL) { //1 child (LEFT)
+    N->left->parent = N->parent;
+    val = N->left;
+  }
+  else if(N->left == NULL && N->right != NULL) { //1 child (RIGHT)
+    N->right->parent = N->parent;
+    val = N->right;
+  } //else N is a leaf, now fix up N's parent pointer
+  if(N->parent != NULL) { (N == N->parent->left) ? (N->parent->left = val) : (N->parent->right = val); }
+  else { T->root = val; }
+  val = N->parent; //first node whose height might have changed
+  if(free_key) { free(N->key); }
+  free(N);
+  while(val != NULL) { 
+    avl_fix_height(val);
+    val = avl_balance(T, val);
+    val = val->parent;
+  }
+  T->size--;
   return T;
 }
 
@@ -361,4 +389,3 @@ avl_node *avl_pred(avl_node *current) {
     return parent;
   }
 }
-

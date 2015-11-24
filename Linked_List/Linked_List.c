@@ -60,6 +60,7 @@ int ls_search(List *L, void *data, int (*comparator)(void *data1, void *data2));
 void *ls_ref(List *L, int i);                                                   //return data of i-th item in the list
 List *ls_reverse(List *L);                                                      //reverse the list
 List *ls_sort(List *L, int (*comparator)(void *data1, void *data2));            //sort the list given a function to compare two values (return -1[<],0[=],1[>])
+//filter
 
 /**********************************************************************
 
