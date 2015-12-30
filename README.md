@@ -9,7 +9,9 @@ Current Implementations of:
 Stacks,
 Queues,
 Linked Lists,
-Binary Search Trees
+Binary Search Trees,
+AVL Search Trees,
+Vectors,
 
 all data structure implement macros for size (number of nodes), empty and
 sometimes peek. 
