@@ -27,6 +27,33 @@ int main() {
   int print_gen = 1;
   
   Dynamic_Vector *V = dvector_make();
+/*
+  int *tmp;
+  tmp = malloc(sizeof(int));
+  *tmp = 5;
+  V = dvector_insert_end(V, tmp);
+  tmp = malloc(sizeof(int));
+  *tmp = 4;
+  V = dvector_insert_end(V, tmp);
+  tmp = malloc(sizeof(int));
+  *tmp = 3;
+  V = dvector_insert_end(V, tmp);
+  tmp = malloc(sizeof(int));
+  *tmp = 2;
+  V = dvector_insert_end(V, tmp);
+  tmp = malloc(sizeof(int));
+  *tmp = 1;
+  V = dvector_insert_end(V, tmp);
+  printf("vec:\t");
+  dvector_walk(V, print);
+  printf("\n");
+  printf("size: %d\n", dvector_size(V));
+  dvector_remove_nth(V, 1, 1);
+  printf("vec:\t");
+  dvector_walk(V, print);
+  printf("\n");
+  printf("size: %d\n", dvector_size(V));
+*/
 
   int i;
   int j = 1;
@@ -36,7 +63,7 @@ int main() {
     i = 0;
     for(;i<size;i++) {
       int *tmp = malloc(sizeof(int));
-      *tmp = rand() % 20;
+      *tmp = rand() % 2;
       V = dvector_insert_nth(V, i, tmp);
     }
     int *tmp = malloc(sizeof(int));

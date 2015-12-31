@@ -12,6 +12,7 @@ Linked Lists,
 Binary Search Trees,
 AVL Search Trees,
 Vectors,
+Dynamic Vectors
 
 all data structure implement macros for size (number of nodes), empty and
 sometimes peek. 

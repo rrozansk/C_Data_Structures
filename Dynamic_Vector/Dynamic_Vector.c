@@ -106,7 +106,8 @@ Dynamic_Vector *dvector_insert_nth(Dynamic_Vector *V, int i, void *data) {
 
 Dynamic_Vector *dvector_remove_nth(Dynamic_Vector *V, int i, int free_data) { 
   if(free_data) { free(dvector_deref(V, i)); }
-  for(; i < --V->size; i++) { dvector_ref(V, i, dvector_deref(V, (i+1))); }
+  int j = --V->size;
+  for(; i < j; i++) { dvector_ref(V, i, dvector_deref(V, (i+1))); }
   return V;
 }
 
