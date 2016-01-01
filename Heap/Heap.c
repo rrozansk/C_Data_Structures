@@ -75,6 +75,7 @@ Heap *heap_make(int (*comparator)(void *key1, void* key2)) {
   H->arr = malloc(sizeof(void *) * HEAP_INIT_SIZE);
   H->h_size = HEAP_INIT_SIZE;
   H->size = 0;
+  return H;
 }
 
 void heap_free(Heap *H, int free_keys) {
@@ -120,7 +121,7 @@ Heap *heap_shift_down(Heap *H, int i) {
       H->arr[i] = tmp;
       i = child;
     }
-    else { return H; }
+    else { break; }
   }
   return H;
 }
@@ -128,8 +129,7 @@ Heap *heap_shift_down(Heap *H, int i) {
 Heap *heap_remove(Heap *H, int i, int free_key) {
   if(free_key) { free(H->arr[i]); }
   H->arr[i] = H->arr[--H->size];
-  H = heap_shift_down(H, i);
-  return H;
+  return heap_shift_down(H, i);
 }
 
 Heap *heapify(void *arr[], int size, int (*comparator)(void * key1, void *key2)) {
@@ -148,9 +148,7 @@ Heap *heapify(void *arr[], int size, int (*comparator)(void * key1, void *key2))
 Heap *heap_push(Heap *H, void *key) {
   if(H->size == H->h_size) { H->arr = realloc(H->arr, (sizeof(void *) * (H->h_size *= 2))); }
   H->arr[H->size] = key;
-  heap_shift_up(H, H->size);
-  H->size++;
-  return H;
+  return heap_shift_up(H, H->size++);
 }
 
 void *heap_pop(Heap *H) {
