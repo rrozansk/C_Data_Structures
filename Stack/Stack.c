@@ -76,8 +76,7 @@ void stack_free(Stack *S, int free_data) {
     free(current);
     current = S->top;
   }
-  S->top = NULL;
-  S->size = 0;
+  free(S);
 }
 
 void stack_walk(Stack *S, void (*f)(void *data)) {
