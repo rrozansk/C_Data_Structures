@@ -25,7 +25,7 @@
 
 ***********************************************************************/
 #define stack_size(S) S->size
-#define stack_empty(S) !S->size
+#define stack_empty(S) (S->size == 0)
 #define stack_peek(S) S->top->data
 
 /**********************************************************************

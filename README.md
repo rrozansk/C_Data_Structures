@@ -12,7 +12,10 @@ Linked Lists,
 Binary Search Trees,
 AVL Search Trees,
 Vectors,
-Dynamic Vectors
+Dynamic Vectors,
+Heaps,
+Priority Queues,
+Circular Queues
 
 all data structure implement macros for size (number of nodes), empty and
 sometimes peek. 

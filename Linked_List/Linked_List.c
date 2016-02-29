@@ -7,7 +7,7 @@
 /* 
  Author: Ryan Rozanski
  Created: 9/6/15
- Last Edited: 11/9/15
+ Last Edited: 1/18/16
  
  A general purpose linked list library for arbitrary payloads
 */
@@ -83,9 +83,7 @@ void ls_free(List *L, int free_data) {
     free(current);
     current = L->head;
   }
-  L->head = NULL;
-  L->tail = NULL;
-  L->size = 0;
+  free(L);
 }
 
 void ls_walk(List *L, void (*f)(void *data)) {
@@ -188,6 +186,7 @@ int ls_search(List *L, void *data, int (*comparator)(void *data1, void *data2)) 
 }
 
 void *ls_ref(List *L, int i) {
+  if(i < 0) { return NULL; }
   ls_node *current = L->head;
   for(; i>0; i--) { current = current->next; }
   return current->data;

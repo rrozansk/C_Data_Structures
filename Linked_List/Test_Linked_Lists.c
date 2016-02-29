@@ -24,6 +24,12 @@ int comparator(void *data1, void *data2) {
   if (d1 > d2) return 1;
 }
 
+void *copy_num(void *data) {
+  int *c = malloc(sizeof(int));
+  *c = *(int *)data;
+  return c;
+}
+
 int main() {
 
   List *ls = ls_make();
@@ -60,6 +66,9 @@ int main() {
   printf("list reverse\n");
   ls_reverse(ls);
   ls_walk(ls, printer);
+  printf("list mapped\n");
+  List *cp = ls_map(ls, copy_num);
+  ls_walk(cp, printer);
 
   //clean up
   ls_free(ls, 1);

@@ -73,6 +73,7 @@ void dvector_free(Dynamic_Vector *V, int free_keys) {
   free(V->arr);
   V->arr = NULL;
   V->size = 0;
+  free(V);
 }
 
 void dvector_walk(Dynamic_Vector *V, void (*f)(void *data)) {

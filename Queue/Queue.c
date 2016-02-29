@@ -1,4 +1,3 @@
-
 /**********************************************************************
 
          	    		F I L E   I N F O R M A T I O N
@@ -135,4 +134,3 @@ int queue_search(Queue *Q, void *data, int (*comparator)(void *data1, void *data
   }
   return -1;
 }
-
