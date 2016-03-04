@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <time.h>
 #include "Hash_Table.c"
 #include "../Queue/Queue.c"
@@ -10,12 +9,30 @@ typedef struct junk {
   short i;
 } junk;
 
-junk make_junk() {
+junk *make_junk() {
   junk *new = malloc(sizeof(junk));
   new->foo = rand() % 32000;
   new->baz = rand() % 255;
   new->i = rand() % 9999;
-  return *new;
+  return new;
+}
+
+void *copier(void *data) {
+  junk *j = (junk *)data;
+  junk *cp = malloc(sizeof(junk));
+  cp->foo = j->foo;
+  cp->baz = j->baz;
+  cp->i = j->i;
+  return cp;
+}
+
+int jcomp(void *d1, void *d2) {
+  junk *j1 = (junk *)d1;
+  junk *j2 = (junk *)d2;
+  if(j1->foo != j2->foo) { return 1; }
+  if(j1->baz != j2->baz) { return 1; }
+  if(j1->i != j2->i) { return 1; }
+  return 0;
 }
 
 int main() {
@@ -34,7 +51,11 @@ int main() {
     H = hash_make();
 //    K = queue_make();
     for(i = 0; i < HSIZE; i++) {
-      *(k = malloc(sizeof(int))) = make_junk();
+      k = make_junk();
+      while(hash_search(H, k, sizeof(junk))) {
+        free(k);
+        k = make_junk();
+      }
 //      queue_enqueue(K, k);
       *(v = malloc(sizeof(int))) = i;
       hash_insert(H, k, sizeof(junk), v);
@@ -43,9 +64,12 @@ int main() {
     for(i = 0; i < HSIZE; i++) { if(H->tbl[i]) { bkts++; } } // maybe also find the max and min of bkt size
     printf("Hash %d\titems: %d\tsize: %d\tload factor: %f\tbuckets: %d\tavg bucket len: %f\n", \
         j, HSIZE, H->tbl_size, hash_load_factor(H), bkts, (float)HSIZE/(float)bkts);
-//    while(queue_size(K)) { if(hash_search(H, queue_dequeue(K), sizeof(junk)) == NULL) { printf("HASH TABLE REBUILD ERROR\n"); } }
+    Hash *COPY = hash_map(H, copier);
+//    while(queue_size(K)) { 
+//      junk *key = queue_dequeue(K); 
+//      if(jcomp(hash_search(H, key, sizeof(junk)) ,hash_search(COPY, key, sizeof(junk)))) { printf("HASH TABLE COPY ERROR\n"); } }
 //    queue_free(K, 0);
-    hash_free(H, 1);
+    hash_free(H, 1, 1);
   }
   return 0;
 }
