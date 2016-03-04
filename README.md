@@ -15,7 +15,7 @@ Vectors,
 Dynamic Vectors,
 Heaps,
 Priority Queues,
-Circular Queues
+Hash Tables
 
 all data structure implement macros for size (number of nodes), empty and
 sometimes peek. 
