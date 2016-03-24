@@ -18,52 +18,8 @@
 ***********************************************************************/
 #include <stdlib.h>
 #include <string.h>
-
-/**********************************************************************
-
-                 	    		M A C R O S
-
-***********************************************************************/
-#define hash_size(H) H->load_size
-#define hash_load_factor(H) ((float)H->load_size/(float)H->tbl_size)
-#define hash_empty(H) !H->load_size
-#define HASH_INIT_SIZE 32
-#define HASH_BUCKET(H, key, len) (H->tbl[fHash(key, len)%H->tbl_size])
-
-/**********************************************************************
-
-                  	H A S H   T A B L E S
-
-***********************************************************************/
-typedef struct Hash {
-  void **tbl;            // array of buckets
-  int tbl_size;
-  int load_size;
-} Hash;
-
-typedef struct Bucket {
-  void **entries;       // array of entries
-  int entries_size;
-} Bucket;
-
-typedef struct Entry {
-  void *key;
-  int k_len;
-  void *val;
-} Entry;
-
-/**********************************************************************
-
-             		F U N C T I O N   P R O T O T Y P E S
-
-***********************************************************************/
-Hash *hash_make();                                                              // make a new Hash
-void hash_free(Hash *H, int free_keys, int free_values);                        // free the Hash and optionally its keys/values
-void hash_walk(Hash *H, void (*f)(void *value));                                // walk over the Hash and apply side-effect f to each elem
-Hash *hash_map(Hash *H, void *(*f)(void *value));                               // make a copy of the hash where each elem is replaced by f(old_elem)
-void *hash_search(Hash *H, void *key, int len);                                 // search returns value if key is valid, else NULL
-void hash_insert(Hash *H, void *key, int key_size, void *value);                // add an key, value assoc to the Hash
-void hash_remove(Hash *H, void *key, int key_size, int free_key, int free_val); // remove the key, value assoc from the Hash and optionally free its key/val
+#include "Hash_Table.h"
+#include "../Dynamic_Vector/Dynamic_Vector.h"
 
 /**********************************************************************
 
@@ -90,7 +46,7 @@ void hash_free(Hash *H, int free_keys, int free_values) {
   int i,j;
   Bucket *curr;
   for(i = 0; i < H->tbl_size; i++) { 
-    if(curr = H->tbl[i]) {
+    if((curr = H->tbl[i])) {
       for(j = 0; j < curr->entries_size; j++) {
         if(free_keys) { free(((Entry *)curr->entries[j])->key); }
         if(free_values) { free(((Entry *)curr->entries[j])->val); }
@@ -104,12 +60,13 @@ void hash_free(Hash *H, int free_keys, int free_values) {
   free(H);
 }
 
+// really f should take key and values
 void hash_walk(Hash *H, void (*f)(void *value)) {
   int i,j;
   Bucket *curr;
   for(i = 0; i < H->tbl_size; i++) { 
-    if(curr = H->tbl[i]) {
-      for(j = 0; j < curr->entries_size; j++) { f(((Entry *)curr->entries[i])->val); }
+    if((curr = H->tbl[i])) {
+      for(j = 0; j < curr->entries_size; j++) { f(((Entry *)curr->entries[j])->val); }
     }
   }
 }
@@ -123,13 +80,13 @@ Hash *hash_map(Hash *H, void *(*f)(void *key)) {
   Bucket *bucket;
   Entry *entry;
   for(i = 0; i < H->tbl_size; i++) { 
-    if(bucket = H->tbl[i]) {
+    if((bucket = H->tbl[i])) {
       Bucket *BUCKET_COPY = malloc(sizeof(Bucket));
       BUCKET_COPY->entries = malloc(sizeof(Entry *) * bucket->entries_size);
       BUCKET_COPY->entries_size = bucket->entries_size;
       COPY->tbl[i] = BUCKET_COPY;
       for(j = 0; j < bucket->entries_size; j++) {
-        Entry *entry = bucket->entries[j];
+        entry = bucket->entries[j];
         Entry *ENTRY_COPY = malloc(sizeof(Entry));
         ENTRY_COPY->key = entry->key;
         ENTRY_COPY->k_len = entry->k_len;
@@ -189,7 +146,7 @@ void hash_insert(Hash *H, void *key, int key_size, void *value) {
     H->tbl = calloc(H->tbl_size *= 2, sizeof(Bucket *));
     int i, j;
     for(i = 0; i < old_size; i++) {       // RE-HASH -- need to rehash everything
-      if(bucket = old_tbl[i]) {
+      if((bucket = old_tbl[i])) {
         for(j = 0; j < bucket->entries_size; j++) {
           entry = bucket->entries[j];
           Bucket *bucket_p = HASH_BUCKET(H, entry->key, entry->k_len);
@@ -213,22 +170,55 @@ void hash_insert(Hash *H, void *key, int key_size, void *value) {
   }
 }
 
+// maybe rewrite this to just put NULL in buck place and insert searches for a
+// NULL bf it extends
 void hash_remove(Hash *H, void *key, int key_size, int free_key, int free_val) {
   H->load_size--;
   Bucket *bucket = HASH_BUCKET(H, key, key_size);
   int i = 0;
-  for(; i < bucket->entries_size; i++) {
-    Entry *entry = bucket->entries[i];
-    if((entry->k_len == key_size) && !memcmp(entry->key, key, key_size)) {
-      if(free_key) { free(entry->key); }
-      if(free_val) { free(entry->val); }
-      free(entry);
+  if(bucket) {
+    for(; i < bucket->entries_size; i++) {       // SEG FAULTS HERE
+      Entry *entry = bucket->entries[i];
+      if((entry->k_len == key_size) && !memcmp(entry->key, key, key_size)) {
+        if(bucket->entries_size == 1) {
+          HASH_BUCKET(H, key, key_size) = '\0';
+          free(bucket->entries);
+          free(bucket);
+          bucket = '\0';
+        }
+        if(free_key) { free(entry->key); }
+        if(free_val) { free(entry->val); }
+        free(entry);
+        break;
+      }
+    }
+    if(bucket) {
+      for(; i < bucket->entries_size-1; i++) { bucket->entries[i] = bucket->entries[i+1]; }
+      bucket->entries_size--;
     }
   }
-  bucket->entries--;
-  if(bucket->entries == 0) {
-    free(bucket->entries);
-    free(bucket);
-    HASH_BUCKET(H, key, key_size) = NULL;
+}
+
+Dynamic_Vector *hash_keys(Hash *H) {
+  Dynamic_Vector *keys = dvector_make();
+  int i,j;
+  Bucket *curr;
+  for(i = 0; i < H->tbl_size; i++) { 
+    if((curr = H->tbl[i])) {
+      for(j = 0; j < curr->entries_size; j++) { dvector_insert_end(keys, ((Entry *)curr->entries[j])->key); }
+    }
   }
+  return keys;
+}
+
+Dynamic_Vector *hash_values(Hash *H) {
+  Dynamic_Vector *values = dvector_make();
+  int i,j;
+  Bucket *curr;
+  for(i = 0; i < H->tbl_size; i++) { 
+    if((curr = H->tbl[i])) {
+      for(j = 0; j < curr->entries_size; j++) { dvector_insert_end(values, ((Entry *)curr->entries[j])->val); }
+    }
+  }
+  return values;
 }
