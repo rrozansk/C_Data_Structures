@@ -40,7 +40,7 @@ int main() {
   srand(time(NULL));
 
   Hash *H;
-//  Queue *K;
+  Queue *K, *Kp;
 
   int HSIZE = 200000;
   int GENERATIONS = 20;
@@ -49,14 +49,14 @@ int main() {
 
   for(j = 0; j < GENERATIONS; j++) {
     H = hash_make();
-//    K = queue_make();
+    K = queue_make();
     for(i = 0; i < HSIZE; i++) {
       k = make_junk();
       while(hash_search(H, k, sizeof(junk))) {
         free(k);
         k = make_junk();
       }
-//      queue_enqueue(K, k);
+      queue_enqueue(K, k);
       *(v = malloc(sizeof(int))) = i;
       hash_insert(H, k, sizeof(junk), v);
     }
@@ -64,12 +64,18 @@ int main() {
     for(i = 0; i < HSIZE; i++) { if(H->tbl[i]) { bkts++; } } // maybe also find the max and min of bkt size
     printf("Hash %d\titems: %d\tsize: %d\tload factor: %f\tbuckets: %d\tavg bucket len: %f\n", \
         j, HSIZE, H->tbl_size, hash_load_factor(H), bkts, (float)HSIZE/(float)bkts);
-    Hash *COPY = hash_map(H, copier);
-//    while(queue_size(K)) { 
-//      junk *key = queue_dequeue(K); 
-//      if(jcomp(hash_search(H, key, sizeof(junk)) ,hash_search(COPY, key, sizeof(junk)))) { printf("HASH TABLE COPY ERROR\n"); } }
-//    queue_free(K, 0);
+    Kp = queue_map(K, copier);
+    while(queue_size(K)) { 
+      k = queue_dequeue(K);
+      hash_remove(H, k, sizeof(junk), 0, 0);
+    }
+    while(queue_size(Kp)) { 
+      k = queue_dequeue(Kp);
+      if(hash_search(H, k, sizeof(junk)) != NULL) { printf("improper remove!!\n"); }
+    }
+    queue_free(K, 0);
     hash_free(H, 1, 1);
   }
+  
   return 0;
 }

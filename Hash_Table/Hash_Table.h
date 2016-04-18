@@ -59,7 +59,6 @@ Hash *hash_map(Hash *H, void *(*f)(void *value));                               
 void *hash_search(Hash *H, void *key, int len);                                 // search returns value if key is valid, else NULL
 void hash_insert(Hash *H, void *key, int key_size, void *value);                // add an key, value assoc to the Hash
 void hash_remove(Hash *H, void *key, int key_size, int free_key, int free_val); // remove the key, value assoc from the Hash and optionally free its key/val
-Dynamic_Vector *hash_values(Hash *H);
-Dynamic_Vector *hash_keys(Hash *H);
+void hash_keys_values(Hash *H, void *keys[], void *values[]);
 
 #endif

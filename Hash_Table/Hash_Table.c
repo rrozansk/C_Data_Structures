@@ -6,7 +6,7 @@
 /* 
  Author: Ryan Rozanski
  Created: 2/7/16
- Last Edited: 3/4/16
+ Last Edited: 4/18/16
  
  A general purpose iterative Hash Table library for arbitrary payloads
 */
@@ -19,7 +19,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "Hash_Table.h"
-#include "../Dynamic_Vector/Dynamic_Vector.h"
 
 /**********************************************************************
 
@@ -170,21 +169,23 @@ void hash_insert(Hash *H, void *key, int key_size, void *value) {
   }
 }
 
-// maybe rewrite this to just put NULL in buck place and insert searches for a
-// NULL bf it extends
 void hash_remove(Hash *H, void *key, int key_size, int free_key, int free_val) {
   H->load_size--;
   Bucket *bucket = HASH_BUCKET(H, key, key_size);
   int i = 0;
   if(bucket) {
-    for(; i < bucket->entries_size; i++) {       // SEG FAULTS HERE
+    for(; i < bucket->entries_size; i++) {
       Entry *entry = bucket->entries[i];
       if((entry->k_len == key_size) && !memcmp(entry->key, key, key_size)) {
         if(bucket->entries_size == 1) {
-          HASH_BUCKET(H, key, key_size) = '\0';
+          HASH_BUCKET(H, key, key_size) = NULL;
           free(bucket->entries);
           free(bucket);
-          bucket = '\0';
+          bucket = NULL;
+        }
+        else {
+          for(; i < bucket->entries_size-1; i++) { bucket->entries[i] = bucket->entries[i+1]; }
+          bucket->entries_size--;
         }
         if(free_key) { free(entry->key); }
         if(free_val) { free(entry->val); }
@@ -192,33 +193,19 @@ void hash_remove(Hash *H, void *key, int key_size, int free_key, int free_val) {
         break;
       }
     }
-    if(bucket) {
-      for(; i < bucket->entries_size-1; i++) { bucket->entries[i] = bucket->entries[i+1]; }
-      bucket->entries_size--;
-    }
   }
 }
 
-Dynamic_Vector *hash_keys(Hash *H) {
-  Dynamic_Vector *keys = dvector_make();
+void hash_keys_values(Hash *H, void *keys[], void *values[]) {
   int i,j;
   Bucket *curr;
+  int k = 0;
   for(i = 0; i < H->tbl_size; i++) { 
     if((curr = H->tbl[i])) {
-      for(j = 0; j < curr->entries_size; j++) { dvector_insert_end(keys, ((Entry *)curr->entries[j])->key); }
+      for(j = 0; j < curr->entries_size; j++) { 
+        keys[k] = ((Entry *)curr->entries[j])->key; 
+        values[k++] = ((Entry *)curr->entries[j])->val; 
+      }
     }
   }
-  return keys;
-}
-
-Dynamic_Vector *hash_values(Hash *H) {
-  Dynamic_Vector *values = dvector_make();
-  int i,j;
-  Bucket *curr;
-  for(i = 0; i < H->tbl_size; i++) { 
-    if((curr = H->tbl[i])) {
-      for(j = 0; j < curr->entries_size; j++) { dvector_insert_end(values, ((Entry *)curr->entries[j])->val); }
-    }
-  }
-  return values;
 }
